@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>PBI List</title>
+        {% load static %}
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+        {% endblock stylesheets %}
+    </head>
+    <body>
+        {% block scripts %}
+            <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+            <script src="{% static 'assets/js/popper.min.js' %}"></script>
+            <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+            <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        {% endblock scripts %}
+        {% block content %}
+        {% csrf_token %}
+            <div style="background-color:#FAFAFA;padding:15px 20px;">
+                <h1>Showing done PBI</h1>
+                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content"></div>
+                    </div>
+                </div>
+                <br/>
+                <br/>
+                <table class="table table-striped small">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Estimate</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Sprint ID</th>
+                            <!-- <th scope="col">Project Linkage</th> -->
+                        </tr>
+                    </thead>
+                    <tbody id="myTable">
+                        {% for pbi in done_list %}
+                            <tr>
+                                <td>{{ pbi.name }}</td>
+                                <td>{{ pbi.estimate }}</td>
+                                <td>{{ pbi.Description }}</td>
+                                <td>{{ pbi.sprint_id }}</td>
+                        {% empty %}
+                            <li>No DONE PBI yet.</li>
+                        {% endfor%}
+                    </tbody>
+                </table>
+            </div>
+        {% endblock content %}
+    </body>
+</html>

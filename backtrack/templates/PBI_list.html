@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>PBI List</title>
+        {% load static %}
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+        {% endblock stylesheets %}
+    </head>
+    <body>
+        {% block scripts %}
+            <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+            <script src="{% static 'assets/js/popper.min.js' %}"></script>
+            <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+            <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        {% endblock scripts %}
+        {% block content %}
+        {% csrf_token %}
+            <div style="background-color:#FAFAFA;padding:15px 20px;">
+                <h1>Showing current PBI</h1>
+                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content"></div>
+                    </div>
+                </div>
+                <br/>
+                <div>
+                    <button type="button" class="pbi-create btn btn-primary" data-id="{% url 'pbi_create' %}">
+                        Create New PBI
+                    </button>
+                    <a href ='/myApp/allPbis'>View all PBI </a>
+                </div>
+                <br/>
+                <table class="table table-striped small">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Estimate</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Priority</th>
+                            <!-- <th scope="col">Project Linkage</th> -->
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myTable">
+                        {% for pbi in pbi_list %}
+                            {% if pbi.status != 3 %}
+                            <tr>
+                                <td>{{ pbi.name }}</td>
+                                <td>{{ pbi.estimate }}</td>
+                                <td>{{ pbi.Description }}</td>
+                                <td>{{ pbi.get_status_display }}</td>
+                                <td>{{ pbi.priority }}</td>
+                                <td>
+                                    {% if pbi.status == 1 %}
+                                        <button type="button" class ="up btn btn-primary" id = {{ pbi.pk }}>↑</button>
+                                        <button type="button" class ="down btn btn-primary" id = {{ pbi.pk }}>↓</button>
+                                    {% endif %}
+                                    {% if pbi.status == 1 %}
+                                    <button type="button" class="pbi-detail btn btn-sm btn-primary" data-id="{% url 'pbi_detail' pbi.pk %}">
+                                        Detail
+                                    </button>
+                                    {% endif %}
+                                    {% if pbi.status != 1 %}
+                                    <button type="button" class="pbi-realDetail btn btn-sm btn-primary" data-id="{% url 'pbi_realDetail' pbi.pk %}">
+                                        Detail
+                                    </button>                                    
+                                    {% endif %}
+                                    <select class="changeStatus"  dataid = {{ pbi.pk }}>
+                                        {% if pbi.status == 1 or pbi.status == 4 %}
+                                            <option value= 1 selected = "selected">Not Yet Started</option>
+                                        {% endif %}
+                                        {% if pbi.status == 2 %}
+                                            <option value= 2 selected = "selected">In Progress</option>
+                                        {% else %}
+                                            <option value= 2 >In Progress</option>
+                                        {% endif %}
+                                        {% if pbi.status == 3 %}
+                                            <option value= 3 selected = "selected">Done</option>
+                                        {% else %}
+                                            <option value= 3 >Done</option>
+                                        {% endif %}
+                                        {% if pbi.status == 4 %}
+                                            <option value= 4 selected = "selected">Not Completed</option>
+                                        {% endif %}
+                                    </select>
+                                    {% if pbi.status == 1 %}
+                                    <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} data-id="{% url 'pbi_delete' pbi.pk %}">
+                                        X
+                                    </button>
+                                     {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% empty %}
+                            <li>No PBI yet.</li>
+                        {% endfor%}
+                    </tbody>
+                </table>
+            </div>
+        {% endblock content %}
+        {% block extrascripts %}
+            <script type="text/javascript">
+            $(function() {
+                $(".pbi-create").each(function () {
+                    $(this).modalForm({formURL: $(this).data('id')});
+                });
+                $(".pbi-detail").each(function () {
+                    $(this).modalForm({formURL: $(this).data('id')});
+                });
+                $(".pbi-realDetail").each(function () {
+                    $(this).modalForm({formURL: $(this).data('id')});
+                });                
+                // $(".pbi-delete").each(function () {
+                //     $(this).modalForm({formURL: $(this).data('id')});
+                // });
+                let delButton = document.getElementsByClassName('pbi-delete');
+                let delLength = delButton.length;
+                for (let i = 0; i<delLength; i++){
+                    let deleted = delButton[i].attributes.priority.value
+                    delButton[i].addEventListener('click', ()=> {
+                        $.post( "delete", {
+                            'myid':delButton[i].attributes.dataid.value,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            let delButton = document.getElementsByClassName('pbi-delete');
+                            let delLength = delButton.length;
+                            for(let j = 0; j< delLength; j++){
+                                if (delButton[j].attributes.priority.value > deleted) {
+                                    $.post("priorityAutoUpdate", {
+                                        'myid': delButton[j].attributes.dataid.value,
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    }, () => {
+                                                window.setTimeout(function () {
+                                                location.href = '/myApp/pbis';
+                                            }, 0)
+                                    })
+                                    }
+                                else {
+                                            window.setTimeout(function () {
+                                            location.href = '/myApp/pbis';
+                                        }, 0)
+                                }
+                                }
+                            });
+                        }
+                    );
+                }
+                $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $(".alert").slideUp(500);
+                });
+                let ups = document.getElementsByClassName('up');
+                let upLength = ups.length;
+                for (let i = 0; i<upLength; i++){
+                    ups[i].addEventListener('click', ()=> {
+                        let previous = ups[i-1];
+                        if(previous!=undefined){
+                            $.post( "up", {
+                                'upid':previous.id,
+                                'myid':ups[i].id,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                                window.setTimeout(function () {
+                                location.href = '/myApp/pbis';
+                                }, 0)
+                            }
+                        );
+                        }
+                    });
+                }
+                let downs = document.getElementsByClassName('down');
+                let downLength = downs.length;
+                for (let i = 0; i<downLength; i++){
+                    downs[i].addEventListener('click', ()=> {
+                        let next = ups[i+1];
+                        if(next!=undefined){
+                            $.post( "down", {
+                                'downid':next.id,
+                                'myid':downs[i].id,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                                window.setTimeout(function () {
+                                location.href = '/myApp/pbis';
+                                }, 0)
+                            }
+                            );
+
+                        }
+                    });
+                }
+                let changeStatus = document.getElementsByClassName('changeStatus');
+                let changeLength = changeStatus.length;
+                for (let i = 0; i<changeLength; i++){
+                    changeStatus[i].addEventListener('change', ()=> {
+                            let newValue = changeStatus[i].options[changeStatus[i].selectedIndex].value;
+                            if(newValue != 3){
+                            $.post( "statusChange", {
+                                'myid':changeStatus[i].attributes.dataid.value,
+                                'newStatus': newValue,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                                window.setTimeout(function () {
+                                location.href = '/myApp/pbis';
+                                }, 0)
+                            }
+                            ); 
+                            } else {
+                                $.post( "processDone", {
+                                    'myid':changeStatus[i].attributes.dataid.value,
+                                    'newStatus': newValue,
+                                csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                                    window.setTimeout(function () {
+                                    location.href = '/myApp/pbis';
+                                    }, 0)
+                                }
+                                ); 
+                            }   
+                    });
+                }
+            });
+            </script>
+        {% endblock extrascripts %}
+    </body>
+</html>

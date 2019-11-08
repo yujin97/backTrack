@@ -1,0 +1,19 @@
+<h1>Showing all PBIs by {{ customer.name }}</h1>
+<ul>
+
+{% for order in order_list %}
+	<li>[{{ order.status }}] {{ order.time }}
+		<ul id = 'temp'>
+			{% for item in order.item.all %}
+				<li>{{ item.name }} ({{ item.price }})</li>
+			{% endfor %}
+		</ul>
+		<button class = "delete" id = "{{order.pk}}" >Delete</button>
+	</li>
+{% empty %}
+	<li>No order yet.</li>
+{% endfor %}
+
+</ul>
+{% load static %}
+<script src = "{% static "script.js" %}" ></script>
