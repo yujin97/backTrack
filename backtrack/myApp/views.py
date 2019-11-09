@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 
 
 # Create your views here.
-
+# random
 
 class ProductOwnerViewCurrent(ListView):
     template_name = 'PBI_list.html'
