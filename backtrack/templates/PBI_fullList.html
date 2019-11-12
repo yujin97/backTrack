@@ -39,6 +39,7 @@
                             <th scope="col">Estimate</th>
                             <th scope="col">Description</th>
                             <th scope="col">Status</th>
+                            <th scope="col">Sprint</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -48,6 +49,11 @@
                                 <td>{{ pbi.name }}</td>
                                 <td>{{ pbi.estimate }}</td>
                                 <td>{{ pbi.Description }}</td>
+                                {% if pbi.sprintNo == None %}
+                                <td>Not Picked</td>
+                                {% else %}
+                                <td>{{ pbi.sprintNo }}</td>
+                                {% endif %}
                                 <td>{{ pbi.get_status_display }}</td>
                                 <td>
                                     {% if pbi.status == 1 %}

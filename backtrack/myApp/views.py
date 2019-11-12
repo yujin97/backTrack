@@ -6,10 +6,11 @@ from myApp.forms import PBIForm, SprintUpdateForm
 from bootstrap_modal_forms.generic import (BSModalUpdateView, BSModalDeleteView, BSModalCreateView)
 from django.views.generic import ListView
 from django.http import HttpResponseRedirect
+from django.db.models import Q
 
 
 # Create your views here.
-# random
+
 
 class ProductOwnerViewCurrent(ListView):
     template_name = 'PBI_list.html'
@@ -50,6 +51,36 @@ class ProductOwnerViewCurrent(ListView):
         obj1.save()
         obj.priority = temp1
         obj.save()
+        context = {
+        'object': obj
+        }
+        # return HttpResponseRedirect('/myApp/pbis')
+        # return render(request, 'PBI_list.html', {})
+        return HttpResponseRedirect(reverse_lazy('pbi_list'))
+
+    def priority_insert_view(request):
+        myid = request.POST.get('myid', '') # function to get param from POST
+        targetPriority = request.POST.get('targetPriority', '')
+        obj = PBI.objects.filter(id=myid).first()
+        target = PBI.objects.filter(priority=targetPriority).first()
+        targetPriority = target.priority
+        if target.status == 1 and targetPriority != obj.priority:
+            if targetPriority < obj.priority:
+                affecteds = PBI.objects.order_by('-priority').filter(Q(priority__lt = obj.priority) & Q(priority__gte = target.priority))
+                obj.priority = None
+                obj.save()
+                for affected in affecteds:
+                    affected.priority = affected.priority + 1
+                    affected.save()
+            else:
+                affecteds = PBI.objects.order_by('priority').filter(Q(priority__gt = obj.priority) & Q(priority__lte = target.priority))
+                obj.priority = None
+                obj.save()
+                for affected in affecteds:
+                    affected.priority = affected.priority - 1
+                    affected.save()
+            obj.priority = targetPriority
+            obj.save()
         context = {
         'object': obj
         }
@@ -157,7 +188,7 @@ class SprintBacklog(TemplateView):
         project = Project.objects.get(pk=1)
         pbis = PickedPBI.objects.order_by('pbi__name').all()
         tasks = Task.objects.all()
-        pbisToBePulled = PBI.objects.filter(status=1) | PBI.objects.filter(status=4)
+        pbisToBePulled = PBI.objects.order_by('priority').filter(status=1)
         notStarted = []
         inProgress = []
         done = []
@@ -186,9 +217,8 @@ class SprintBacklog(TemplateView):
                     break
             if notPulled == True:
                 pullItems.append(pbiToBePulled)
-
         context['project'] = project
-        context['pbis'] = PickedPBI.objects.order_by('pbi__name').all()
+        context['pbis'] = PickedPBI.objects.order_by('pbi__priority').all()
         context['notStartedTasks'] = notStarted
         context['inProgressTasks'] = inProgress
         context['doneTasks'] = done
@@ -202,6 +232,7 @@ class SprintBacklog(TemplateView):
         pulledTask = PickedPBI(pbi = obj)
         pulledTask.save()
         obj.status = 2
+        obj.sprintNo = obj.project.sprint
         obj.save()
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
@@ -218,26 +249,37 @@ class SprintBacklog(TemplateView):
         projectid = request.POST.get('projectid', '')
         project = Project.objects.get(pk=projectid)
         pbis = []
-        pickedPbis = PickedPBI.objects.all()
+        pickedPbis = PickedPBI.objects.order_by('pbi__priority').all()
+        others = PBI.objects.order_by('priority').all()
         for pbi in pickedPbis:
             if pbi.pbi.project == project:
                 pbis.append(pbi.pbi)
                 pbi.delete()
-        others = PBI.objects.all()
         for pbi in pbis:
+            pbi.refresh_from_db()
             pbi.status = 3
             mypriority = pbi.priority
             pbi.priority = None
             pbi.save()
             for other in others:
+                other.refresh_from_db()
                 if other.priority != None and mypriority != None:
                     if other.priority > mypriority:
                         other.priority = (other.priority - 1)
                         other.save()
         project.sprint = project.sprint + 1
         project.sprintEffort = 0
+        project.started = False
         project.save()
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
+
+    def startProject(request):
+        projectid = request.POST.get('projectid')
+        project = Project.objects.get(pk=projectid)
+        project.started = True
+        project.save()
+        return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
+
 
 class SprintUpdateView(BSModalUpdateView):
     model = Project

@@ -1,0 +1,66 @@
+.zone {
+	padding: 1rem 0;
+}
+
+.detail1 {
+	display:flex;
+	justify-content: space-between;
+}
+
+.detail2 {
+	display:flex;
+	justify-content: space-between;
+}
+
+.detail2 .pic {
+	display:flex;
+	justify-content: space-between;
+}
+
+.detail2 .btn {
+	margin-left: 10px
+}
+
+.detail3 {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+.detail3 textarea {
+	align-content: left;
+}
+
+.detail3 p {
+	max-width: 40%;
+	margin-bottom: 0
+}
+
+.detail4 {
+	display:flex;
+	justify-content: flex-start;
+}
+
+.nextLabel {
+	margin-left: 30px;
+}
+
+.detail1 .nextLabel{
+	display: inline;
+}
+
+.detail2 .nextLabel{
+	display: inline;
+}
+
+.detail1 .pbi div{
+	display: inline-block;
+}
+
+.detail5 div {
+	display:inline-block;
+}
+
+.detail6 div, .detail6 p{
+	display:inline-block;
+}

@@ -37,10 +37,11 @@
                         <tr>
                             <th scope="col">Name</th>
                             <th scope="col">Estimate</th>
+                            <th scope="col">Acc. Estimate</th>
                             <th scope="col">Description</th>
                             <th scope="col">Status</th>
                             <th scope="col">Priority</th>
-                            <!-- <th scope="col">Project Linkage</th> -->
+                            <th scope="col">Sprint</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -49,14 +50,22 @@
                             {% if pbi.status != 3 %}
                             <tr>
                                 <td>{{ pbi.name }}</td>
-                                <td>{{ pbi.estimate }}</td>
+                                <td class = "estimate">{{ pbi.estimate }}</td>
+                                <td class = "accEstimate"></td>
                                 <td>{{ pbi.Description }}</td>
                                 <td>{{ pbi.get_status_display }}</td>
                                 <td>{{ pbi.priority }}</td>
+                                {% if pbi.sprintNo == None %}
+                                <td>Not Picked</td>
+                                {% else %}
+                                <td>{{ pbi.sprintNo }}</td>
+                                {% endif %}
                                 <td>
                                     {% if pbi.status == 1 %}
                                         <button type="button" class ="up btn btn-primary" id = {{ pbi.pk }}>↑</button>
                                         <button type="button" class ="down btn btn-primary" id = {{ pbi.pk }}>↓</button>
+                                        <input type="text" class = "insertField" placeholder ="priority"></input>
+                                        <button class ="insert btn btn-primary btn-sm" pbiId = {{ pbi.pk }} >Insert</button>
                                     {% endif %}
                                     {% if pbi.status == 1 %}
                                     <button type="button" class="pbi-detail btn btn-sm btn-primary" data-id="{% url 'pbi_detail' pbi.pk %}">
@@ -214,6 +223,34 @@
                                 ); 
                             }   
                     });
+                }
+                let insertBtn = document.getElementsByClassName('insert');
+                let insertField = document.getElementsByClassName('insertField');
+                for(let i =0; i<insertBtn.length; i++){
+                    insertBtn[i].addEventListener('click', () => {
+                            let targetPriority = insertField[i].value;
+                            let myid = insertBtn[i].attributes.pbiId.value;
+                            if(targetPriority){
+                                $.post( "priorityInsert", {
+                                    'myid':myid,
+                                    'targetPriority': targetPriority,
+                                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                                        window.setTimeout(function () {
+                                        location.href = '/myApp/pbis';
+                                    }, 0)
+                                }
+                                );
+                            }
+                    })
+                }
+
+                let acc = document.getElementsByClassName('accEstimate');
+                let est = document.getElementsByClassName('estimate')
+                let estLength = acc.length
+                acc[0].innerHTML = parseInt(est[0].innerText)
+                for (let i = 1; i < estLength; i++){
+                    let accValue = parseInt(acc[i-1].innerText) + parseInt(est[i].innerText);
+                    acc[i].innerHTML = accValue;
                 }
             });
             </script>
