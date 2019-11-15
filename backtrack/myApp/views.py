@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy
-from myApp.models import Project, PBI, PickedPBI, Task, Developer
+from myApp.models import Project, PBI, PickedPBI, Task
 from myApp.forms import PBIForm, SprintUpdateForm
 from bootstrap_modal_forms.generic import (BSModalUpdateView, BSModalDeleteView, BSModalCreateView)
 from django.views.generic import ListView
@@ -321,7 +321,7 @@ class taskDetails(TemplateView):
         taskid = request.POST.get('taskid', '')
         task = Task.objects.get(pk=taskid)
         devid = request.POST.get('devid', '')
-        dev = Developer.objects.get(pk=devid)
+        dev = None
         pbiid = request.POST.get('pbiid', '')
         pbi = PickedPBI.objects.get(pk=pbiid)
         task.pic = dev
