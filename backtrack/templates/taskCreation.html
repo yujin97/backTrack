@@ -1,96 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Task Details</title>
-        {% load static %}
-        {% block stylesheets %}
-            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
-        {% endblock stylesheets %}
-    </head>
-    <body>
-        {% block scripts %}
-            <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
-            <script src="{% static 'assets/js/popper.min.js' %}"></script>
-            <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-        {% endblock scripts %}
-        {% block content %}
-        {% csrf_token %}
-            <div style="background-color:#FAFAFA;padding:15px 20px;">
-                <div class="card">
-                  <div class="card-header">
-                    Task Details
-                  </div>
-                      <div class="card-body">
-                        <div class='zone detail1'>
-                            <div class = 'pbi'>
-                                <div>PBI:</div>
-                                <select class="selectedPbi nextLabel" id = 'pbi' >
-                                    <option value= '-1' selected = "selected">-Not Selected-</option>
-                                    {% for pbi in pbis %}
-                                        <option value= '{{ pbi.pk }}'>{{ pbi.pbi.name}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class='buttons'>
-                                <button type="button" class="btn btn-success btn-sm" id = 'create'>Create</button>
-                            </div>
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <div class="card">
+              <div class="card-header">
+                Task Details
+              </div>
+                  <div class="card-body">
+                    <div class='zone detail1'>
+                        <div class = 'pbi'>
+                            <div>PBI:</div>
+                            <select class="selectedPbi nextLabel" id = 'pbi' >
+                                <option value= '-1' selected = "selected">-Not Selected-</option>
+                                {% for pbi in pbis %}
+                                    <option value= '{{ pbi.pk }}'>{{ pbi.pbi.name}}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="zone detail2">
-                            <div class ="name">
-                                Name:   <input type="text" class ="nextLabel" id = "name" value = ""/>
-                            </div>
-                         </div>
-                        <div class = "zone detail3">
-                            <div>
-                            Description: 
-                            </div>
-                            <textarea class = "nextLabel" rows="4" cols="50" id = "description" value = ""></textarea>
+                        <div class='buttons'>
+                            <button type="button" class="btn btn-success btn-sm" id = 'create'>Create</button>
                         </div>
-                        <div class = "zone detail4">
-                            <div>
-                            Estimate: 
-                            </div>
-                            <input type="text" class ="nextLabel" id = "estimate" value = ""/>
+                    </div>
+                    <div class="zone detail2">
+                        <div class ="name">
+                            Name:   <input type="text" class ="nextLabel" id = "name" value = ""/>
                         </div>
+                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Description: 
+                        </div>
+                        <textarea class = "nextLabel" rows="4" cols="50" id = "description" value = ""></textarea>
+                    </div>
+                    <div class = "zone detail4">
+                        <div>
+                        Estimate: 
+                        </div>
+                        <input type="text" class ="nextLabel" id = "estimate" value = ""/>
                     </div>
                 </div>
             </div>
-        {% endblock content %}
-        {% block extrascripts %}
-            <script type="text/javascript">
-            $(function() {             
-                let create = document.getElementById('create');
-                let pbiList = document.getElementById('pbi');
-                let name = document.getElementById('name');
-                let description = document.getElementById('description');
-                let estimate = document.getElementById('estimate');
-                create.addEventListener('click', () => {
-                    let pbi = pbiList.options[pbiList.selectedIndex].value;
-                    let namev = name.value;
-                    let descriptionv = description.value;
-                    let estimatev = estimate.value
-                    if (pbi != -1 && namev != "" && descriptionv != "" && estimatev != ""){
-                        $.post( "taskCreation/create", {
-                            'pbi':pbi,
-                            'name':namev,
-                            'description': descriptionv,
-                            'estimate': estimatev,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog';
-                            }, 0)
-                        }
-                        ); 
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {             
+            let create = document.getElementById('create');
+            let pbiList = document.getElementById('pbi');
+            let name = document.getElementById('name');
+            let description = document.getElementById('description');
+            let estimate = document.getElementById('estimate');
+            create.addEventListener('click', () => {
+                let pbi = pbiList.options[pbiList.selectedIndex].value;
+                let namev = name.value;
+                let descriptionv = description.value;
+                let estimatev = estimate.value
+                if (pbi != -1 && namev != "" && descriptionv != "" && estimatev != ""){
+                    $.post( "taskCreation/create", {
+                        'pbi':pbi,
+                        'name':namev,
+                        'description': descriptionv,
+                        'estimate': estimatev,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = '/myApp/sprintBacklog';
+                        }, 0)
                     }
-                    else {
-                        alert('Please provide all information.')
-                    }
-                })
-            });
-            </script>
-        {% endblock extrascripts %}
-    </body>
-</html>
+                    ); 
+                }
+                else {
+                    alert('Please provide all information.')
+                }
+            })
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}
