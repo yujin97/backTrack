@@ -1,253 +1,243 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Task Details</title>
-        {% load static %}
-        {% load mathfilters %}
-        {% block stylesheets %}
-            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
-        {% endblock stylesheets %}
-    </head>
-    <body>
-        {% block scripts %}
-            <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
-            <script src="{% static 'assets/js/popper.min.js' %}"></script>
-            <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-        {% endblock scripts %}
-        {% block content %}
-        {% csrf_token %}
-            <div style="background-color:#FAFAFA;padding:15px 20px;">
-                <div class="card">
-                  <div class="card-header">
-                    Task Details
-                  </div>
-                    {% if task.status == 1 %}
-                      <div class="card-body">
-                        <div class='zone detail1'>
-                            <div class = 'id' id = 'id' taskId = {{ task.id }} status = {{ task.status }} pbiId = {{ task.pbiPicked.pk }}>
-                                ID: {{ task.id }}
-                            </div>
-                            <div class='buttons'>
-                                <button type="button" class="btn btn-success btn-sm" id = "save">Save Update</button>
-                                <button type="button" class="btn btn-danger btn-sm" id = "discard">Discard Update</button>
-                                <button type="button" class="btn btn-danger btn-sm" id = "delete">Delete</button>
-                            </div>
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <div class="card">
+              <div class="card-header">
+                Task Details
+              </div>
+                {% if task.status == 1 %}
+                  <div class="card-body">
+                    <div class='zone detail1'>
+                        <div class = 'id' id = 'id' taskId = {{ task.id }} status = {{ task.status }} pbiId = {{ task.pbiPicked.pk }}>
+                            ID: {{ task.id }}
                         </div>
-                        <div class="zone detail2">
-                            <div class ="name">
-                                Name:   <input type="text" value = "{{ task.name }}" class ="nextLabel" id = "name"/>
-                            </div>
-                            <div class = "pic">
-                                <div>
-                                person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
-                                </div>
-                                {% if not task.pic %}
-                                <div>
-                                    <button type="button" class="btn btn-dark btn-sm" id = "pick">Pick</button>
-                                </div>
-                                {% endif %}
-                            </div>
-                         </div>
-                        <div class = "zone detail3">
-                            <div>
-                            Description: 
-                            </div>
-                            <textarea class = "nextLabel" rows="4" cols="50" id = "description">{{ task.Description }}</textarea>
-                        </div>
-                        <div class = "zone detail4">
-                            <div>
-                            Status: 
-                            </div>
-                            <p class =" nextLabel">Not yet Started</p>
-                        </div>
-                        <div class = "zone detail5">
-                            <div>
-                            Estimate: 
-                            </div>
-                            <input type="text" value = "{{ task.estimate}}" class ="nextLabel" id = "estimate"/> hours
-                        </div>
-                        <div class = "zone detail6">
-                            <div>
-                            Completed Effort: 
-                            </div>
-                            <p class ="nextLabel" id = "remain">{{ task.complete }} hours</p>
+                        <div class='buttons'>
+                            <button type="button" class="btn btn-success btn-sm" id = "save">Save Update</button>
+                            <button type="button" class="btn btn-danger btn-sm" id = "discard">Discard Update</button>
+                            <button type="button" class="btn btn-danger btn-sm" id = "delete">Delete</button>
                         </div>
                     </div>
-                    {% else %}
-                      <div class="card-body">
-                        <div class='zone detail1'>
-                            <div class = 'id' status = {{ task.status }} id = 'id' taskId = {{ task.id }} pbiId = {{ task.pbiPicked.pk }}>
-                                ID: {{ task.id }}
-                            </div>
-                            <div class='buttons'>
-                                <button type="button" class="btn btn-success btn-sm" id = 'save'>Save Update</button>
-                                <button type="button" class="btn btn-danger btn-sm">Discard Update</button>
-                            </div>
+                    <div class="zone detail2">
+                        <div class ="name">
+                            Name:   <input type="text" value = "{{ task.name }}" class ="nextLabel" id = "name"/>
                         </div>
-                        <div class="zone detail2">
-                            <div class ="name">
-                                Name:   <p class ="nextLabel">{{ task.name }}</p>
-                            </div>
-                            <div class = "pic">
-                                <div>
-                                person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
-                                </div>
-                            </div>
-                         </div>
-                        <div class = "zone detail3">
+                        <div class = "pic">
                             <div>
-                            Description: 
+                            person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
                             </div>
-                            <p class = "nextLabel" >{{ task.Description }}</p>
-                        </div>
-                        <div class = "zone detail4">
+                            {% if not task.pic %}
                             <div>
-                            Status: 
+                                <button type="button" class="btn btn-dark btn-sm" id = "pick">Pick</button>
                             </div>
-                            <select class="changeStatus nextLabel" id = 'status'>
-                                <option value= 1>Not yet Started</option>
-                                {% if task.status == 2 %}
-                                    <option value= 2 selected = "selected">In Progress</option>
-                                {% else %}
-                                    <option value= 2 >In Progress</option>
-                                {% endif %}
-                                {% if task.status == 3 %}
-                                    <option value= 3 selected = "selected">Done</option>
-                                {% else %}
-                                    <option value= 3 >Done</option>
-                                {% endif %}
-                            </select>
-                        </div>
-                        <div class = "zone detail5">
-                            <div>
-                            Estimate: 
-                            </div>
-                            {% if task.status == 2 %}
-                            <input type="text" value = "{{ task.estimate }}" class ="nextLabel" id = "estimate"/> hours
-                            {% else %}
-                            <div class ="nextLabel">{{ task.estimate}} hours</div>
                             {% endif %}
                         </div>
-                        <div class = "zone detail6">
-                            <div>
-                            Completed Effort: 
-                            </div>
-                            {% if task.status == 2 %}
-                            <input type="text" value = "{{ task.complete }}" class ="nextLabel" id = "complete"/> hours
-                            {% else %}
-                            <div class ="nextLabel">{{ task.estimate}} hours</div>
-                            {% endif %}
+                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Description: 
                         </div>
-                    </div>                    
-                    {% endif %}
+                        <textarea class = "nextLabel" rows="4" cols="50" id = "description">{{ task.Description }}</textarea>
+                    </div>
+                    <div class = "zone detail4">
+                        <div>
+                        Status: 
+                        </div>
+                        <p class =" nextLabel">Not yet Started</p>
+                    </div>
+                    <div class = "zone detail5">
+                        <div>
+                        Estimate: 
+                        </div>
+                        <input type="text" value = "{{ task.estimate}}" class ="nextLabel" id = "estimate"/> hours
+                    </div>
+                    <div class = "zone detail6">
+                        <div>
+                        Completed Effort: 
+                        </div>
+                        <p class ="nextLabel" id = "remain">{{ task.complete }} hours</p>
+                    </div>
                 </div>
+                {% else %}
+                  <div class="card-body">
+                    <div class='zone detail1'>
+                        <div class = 'id' status = {{ task.status }} id = 'id' taskId = {{ task.id }} pbiId = {{ task.pbiPicked.pk }}>
+                            ID: {{ task.id }}
+                        </div>
+                        <div class='buttons'>
+                            <button type="button" class="btn btn-success btn-sm" id = 'save'>Save Update</button>
+                            <button type="button" class="btn btn-danger btn-sm">Discard Update</button>
+                        </div>
+                    </div>
+                    <div class="zone detail2">
+                        <div class ="name">
+                            Name:   <p class ="nextLabel">{{ task.name }}</p>
+                        </div>
+                        <div class = "pic">
+                            <div>
+                            person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
+                            </div>
+                        </div>
+                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Description: 
+                        </div>
+                        <p class = "nextLabel" >{{ task.Description }}</p>
+                    </div>
+                    <div class = "zone detail4">
+                        <div>
+                        Status: 
+                        </div>
+                        <select class="changeStatus nextLabel" id = 'status'>
+                            <option value= 1>Not yet Started</option>
+                            {% if task.status == 2 %}
+                                <option value= 2 selected = "selected">In Progress</option>
+                            {% else %}
+                                <option value= 2 >In Progress</option>
+                            {% endif %}
+                            {% if task.status == 3 %}
+                                <option value= 3 selected = "selected">Done</option>
+                            {% else %}
+                                <option value= 3 >Done</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class = "zone detail5">
+                        <div>
+                        Estimate: 
+                        </div>
+                        {% if task.status == 2 %}
+                        <input type="text" value = "{{ task.estimate }}" class ="nextLabel" id = "estimate"/> hours
+                        {% else %}
+                        <div class ="nextLabel">{{ task.estimate}} hours</div>
+                        {% endif %}
+                    </div>
+                    <div class = "zone detail6">
+                        <div>
+                        Completed Effort: 
+                        </div>
+                        {% if task.status == 2 %}
+                        <input type="text" value = "{{ task.complete }}" class ="nextLabel" id = "complete"/> hours
+                        {% else %}
+                        <div class ="nextLabel">{{ task.estimate}} hours</div>
+                        {% endif %}
+                    </div>
+                </div>                    
+                {% endif %}
             </div>
-        {% endblock content %}
-        {% block extrascripts %}
-            <script type="text/javascript">
-            $(function() {
-                let thisStatus = document.getElementById('id').attributes.status.value; 
-                let saveBtn = document.getElementById('save');
-                let name = document.getElementById('name');
-                let description = document.getElementById('description');
-                let estimate = document.getElementById('estimate');
-                if (thisStatus == 1){
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+            let thisStatus = document.getElementById('id').attributes.status.value; 
+            let saveBtn = document.getElementById('save');
+            let name = document.getElementById('name');
+            let description = document.getElementById('description');
+            let estimate = document.getElementById('estimate');
+            if (thisStatus == 1){
+                saveBtn.addEventListener('click', () => {
+                    let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
+                    let namev = name.value;
+                    let descriptionv = description.value;
+                    let estimatev = estimate.value
+                    if (namev != "" && descriptionv != "" && estimatev != ""){
+                        $.post( "edit", {
+                            'taskid':taskId,
+                            'name':namev,
+                            'description': descriptionv,
+                            'estimate': estimatev,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = '/myApp/taskDetails/' + taskId;
+                            }, 0)
+                        }
+                        ); 
+                    }
+                    else {
+                        alert('Please provide all information.')
+                    }
+                })
+                let pickbtn = document.getElementById('pick');
+                pickbtn.addEventListener('click', () => {
+                    let devid = 1 //temp, will change after authentication is implemented
+                    let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
+                    let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
+                    $.post( "pick", {
+                        'taskid':taskId,
+                        'devid': devid,
+                        'pbiid': pbiId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = '/myApp/taskDetails/' + taskId;
+                        }, 0)
+                    }
+                    );                     
+                })
+                let deleteBtn = document.getElementById('delete');
+                deleteBtn.addEventListener('click',() => {
+                    let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
+                    let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
+                    $.post( "delete", {
+                        'taskid':taskId,
+                        'pbiid':pbiId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = '/myApp/sprintBacklog'
+                        }, 0)
+                    }
+                    );                         
+                })
+        }
+            if (thisStatus != 1){
+                let statusList = document.getElementById('status');
+                statusList.addEventListener('change', () => {
+                    let status = statusList.options[statusList.selectedIndex].value;
+                    let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
+                    let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
+                    $.post( "changeStatus", {
+                        'taskid':taskId,
+                        'status': status,
+                        'pbiid': pbiId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = '/myApp/taskDetails/' + taskId;
+                        }, 0)
+                    }
+                    );    
+                })
+                if(thisStatus == 2){
                     saveBtn.addEventListener('click', () => {
-                        let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
-                        let namev = name.value;
-                        let descriptionv = description.value;
                         let estimatev = estimate.value
-                        if (namev != "" && descriptionv != "" && estimatev != ""){
-                            $.post( "edit", {
+                        let complete = document.getElementById('complete').value;
+                        let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
+                        if(complete){
+                            $.post( "changeComplete", {
+                                'estimate':estimatev,
                                 'taskid':taskId,
-                                'name':namev,
-                                'description': descriptionv,
-                                'estimate': estimatev,
+                                'complete': complete,
                             csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                                 window.setTimeout(function () {
                                 location.href = '/myApp/taskDetails/' + taskId;
                                 }, 0)
                             }
-                            ); 
-                        }
-                        else {
-                            alert('Please provide all information.')
-                        }
+                            );
+                        } 
                     })
-                    let pickbtn = document.getElementById('pick');
-                    pickbtn.addEventListener('click', () => {
-                        let devid = 1 //temp, will change after authentication is implemented
-                        let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
-                        let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                        $.post( "pick", {
-                            'taskid':taskId,
-                            'devid': devid,
-                            'pbiid': pbiId,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = '/myApp/taskDetails/' + taskId;
-                            }, 0)
-                        }
-                        );                     
-                    })
-                    let deleteBtn = document.getElementById('delete');
-                    deleteBtn.addEventListener('click',() => {
-                        let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
-                        let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                        $.post( "delete", {
-                            'taskid':taskId,
-                            'pbiid':pbiId,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog'
-                            }, 0)
-                        }
-                        );                         
-                    })
-            }
-                if (thisStatus != 1){
-                    let statusList = document.getElementById('status');
-                    statusList.addEventListener('change', () => {
-                        let status = statusList.options[statusList.selectedIndex].value;
-                        let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
-                        let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                        $.post( "changeStatus", {
-                            'taskid':taskId,
-                            'status': status,
-                            'pbiid': pbiId,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = '/myApp/taskDetails/' + taskId;
-                            }, 0)
-                        }
-                        );    
-                    })
-                    if(thisStatus == 2){
-                        saveBtn.addEventListener('click', () => {
-                            let estimatev = estimate.value
-                            let complete = document.getElementById('complete').value;
-                            let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
-                            if(complete){
-                                $.post( "changeComplete", {
-                                    'estimate':estimatev,
-                                    'taskid':taskId,
-                                    'complete': complete,
-                                csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                                    window.setTimeout(function () {
-                                    location.href = '/myApp/taskDetails/' + taskId;
-                                    }, 0)
-                                }
-                                );
-                            } 
-                        })
-                    }
-
                 }
-            });
-            </script>
-        {% endblock extrascripts %}
-    </body>
-</html>
+
+            }
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

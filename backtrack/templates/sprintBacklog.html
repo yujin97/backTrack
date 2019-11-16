@@ -1,279 +1,270 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Sprint Backlog</title>
-        {% load static %}
-        {% load mathfilters %}
-        {% block stylesheets %}
-            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/sprintStyles.css' %}">
-        {% endblock stylesheets %}
-    </head>
-    <body>
-        {% block scripts %}
-            <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
-            <script src="{% static 'assets/js/popper.min.js' %}"></script>
-            <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-        {% endblock scripts %}
-        {% block content %}
-        {% csrf_token %}
-            <div style="background-color:#FAFAFA;padding:15px 20px;">
-                <h1 id = "topic" status = {{ project.started }}>Sprint Backlog</h1>
-                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content"></div>
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% load mathfilters %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/sprintStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <h1 id = "topic" status = {{ project.started }}>Sprint Backlog</h1>
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+            <br/>
+            {% if project.started == False %}
+                <div id = 'notStartedArea'>
+                <button type="button" class = "btn btn-primary btn-lg" id = "startBtn" project = {{ project.pk }}>Start Sprint {{ project.sprint }}</button>
+                </div>
+            {% else %}
+                <div>
+                    <select class ="pullTask">
+                        <option value = '-1'  selected = "selected">Please pull a PBI from the Product Backlog</option>
+                        {% for pullItem in pullItems %}
+                            <option value = "{{ pullItem.pk }}">{{ pullItem.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="pull-task btn btn-primary btn-sm">
+                        Pull
+                    </button>
+                    <br>
+                    <div class = "buttonContainer">
+                    <button type="button" class="btn btn-primary btn-lg" id = "createTask">
+                        Create task
+                    </button>
+                    <div class = "buttonContainer2">
+                        <button type="button" class="changeSprintInfo btn btn-primary sm-lg" data-id="{% url 'sprintBacklog_changeSprintInfo' project.pk %}">
+                            Edit Available Effort 
+                        </button>
                     </div>
                 </div>
                 <br/>
-                {% if project.started == False %}
-                    <div id = 'notStartedArea'>
-                    <button type="button" class = "btn btn-primary btn-lg" id = "startBtn" project = {{ project.pk }}>Start Sprint {{ project.sprint }}</button>
-                    </div>
-                {% else %}
-                    <div>
-                        <select class ="pullTask">
-                            <option value = '-1'  selected = "selected">Please pull a PBI from the Product Backlog</option>
-                            {% for pullItem in pullItems %}
-                                <option value = "{{ pullItem.pk }}">{{ pullItem.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" class="pull-task btn btn-primary btn-sm">
-                            Pull
-                        </button>
-                        <br>
-                        <div class = "buttonContainer">
-                        <button type="button" class="btn btn-primary btn-lg" id = "createTask">
-                            Create task
-                        </button>
-                        <div class = "buttonContainer2">
-                            <button type="button" class="changeSprintInfo btn btn-primary sm-lg" data-id="{% url 'sprintBacklog_changeSprintInfo' project.pk %}">
-                                Edit Available Effort 
-                            </button>
-                        </div>
-                    </div>
-                    <br/>
-                    <div class = "main">
-                        <div class = "tableContainer">
-                            <table class="table table-striped small">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">PBI</th>
-                                        <th scope="col">Not Yet Started</th>
-                                        <th scope="col">In Progress</th>
-                                        <th scope="col">Done</th>
+                <div class = "main">
+                    <div class = "tableContainer">
+                        <table class="table table-striped small">
+                            <thead>
+                                <tr>
+                                    <th scope="col">PBI</th>
+                                    <th scope="col">Not Yet Started</th>
+                                    <th scope="col">In Progress</th>
+                                    <th scope="col">Done</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myTable">
+                                {% for pbi in pbis %}
+                                    <tr class = "pbi">
+                                        <td>{{ pbi.pbi.name }}<br>story points: {{ pbi.pbi.estimate }}
+                                            <div class = "pbiEstimate"></div>
+                                            <div class = "pbiBurndown"></div>
+                                            <div class = "pbiRemain"></div>
+                                            <br>
+                                            <button type="button" class="deletePulled btn btn-danger btn-sm"  pulled = {{ pbi.pk }}>Delete</button>
+                                            <br>
+                                        </td>
+                                        <td>
+                                            <div class = "taskContainer">
+                                                {% for notStarted in notStartedTasks %}
+                                                    {% if notStarted.pbiPicked == pbi %}
+                                            <div class = 'task' dataid = "{{ notStarted.pk }}">
+                                                <div>{{ notStarted.name }}</div>
+                                                <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.estimate }} >estimate: {{ notStarted.estimate }} hours</div>
+                                                <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.complete }}>burndown: {{ notStarted.complete }} hours</div>
+                                            </div>
+                                                    {% else %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                        <div class = "taskContainer">
+                                            {% for inProgress in inProgressTasks %}
+                                                {% if inProgress.pbiPicked == pbi %}
+                                                    <div class = 'task' dataid = "{{ inProgress.pk }}">
+                                                        {{ inProgress.name }}
+                                                        <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.estimate }}>estimate: {{ inProgress.estimate }} hours</div>
+                                                        <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.complete }} >burndown: {{ inProgress.complete }} hours</div>
+                                                    </div>
+                                                {% else %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        </td>
+                                        <td>
+                                        <div class = "taskContainer">
+                                            {% for done in doneTasks %}
+                                                {% if done.pbiPicked == pbi %}
+                                                    <div class = 'task' dataid = "{{ done.pk }}">
+                                                        {{ done.name }}
+                                                        <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ done.estimate }} >estimate: {{ done.estimate }} hours</div>
+                                                        <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ done.complete }} >burndown: {{ done.complete }} hours</div>
+                                                    </div>
+                                                {% else %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody id="myTable">
-                                    {% for pbi in pbis %}
-                                        <tr class = "pbi">
-                                            <td>{{ pbi.pbi.name }}<br>story points: {{ pbi.pbi.estimate }}
-                                                <div class = "pbiEstimate"></div>
-                                                <div class = "pbiBurndown"></div>
-                                                <div class = "pbiRemain"></div>
-                                                <br>
-                                                <button type="button" class="deletePulled btn btn-danger btn-sm"  pulled = {{ pbi.pk }}>Delete</button>
-                                                <br>
-                                            </td>
-                                            <td>
-                                                <div class = "taskContainer">
-                                                    {% for notStarted in notStartedTasks %}
-                                                        {% if notStarted.pbiPicked == pbi %}
-                                                <div class = 'task' dataid = "{{ notStarted.pk }}">
-                                                    <div>{{ notStarted.name }}</div>
-                                                    <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.estimate }} >estimate: {{ notStarted.estimate }} hours</div>
-                                                    <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.complete }}>burndown: {{ notStarted.complete }} hours</div>
-                                                </div>
-                                                        {% else %}
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </div>
-                                            </td>
-                                            <td>
-                                            <div class = "taskContainer">
-                                                {% for inProgress in inProgressTasks %}
-                                                    {% if inProgress.pbiPicked == pbi %}
-                                                        <div class = 'task' dataid = "{{ inProgress.pk }}">
-                                                            {{ inProgress.name }}
-                                                            <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.estimate }}>estimate: {{ inProgress.estimate }} hours</div>
-                                                            <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.complete }} >burndown: {{ inProgress.complete }} hours</div>
-                                                        </div>
-                                                    {% else %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                            </td>
-                                            <td>
-                                            <div class = "taskContainer">
-                                                {% for done in doneTasks %}
-                                                    {% if done.pbiPicked == pbi %}
-                                                        <div class = 'task' dataid = "{{ done.pk }}">
-                                                            {{ done.name }}
-                                                            <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ done.estimate }} >estimate: {{ done.estimate }} hours</div>
-                                                            <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ done.complete }} >burndown: {{ done.complete }} hours</div>
-                                                        </div>
-                                                    {% else %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                            </td>
-                                        </tr>
-                                    {% empty %}
-                                        <li>No PBI pulled yet.</li>
-                                    {% endfor%}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class = "sprintInfo">
-                            <h5>Sprint Statistics:</h5><hr>
-                            <div id = "sprintNum">Current Sprint: Sprint {{ project.sprint }}</div>
-                            <div id = 'sprintAvailable'>Available Effort: {{ project.sprintEffort }} hours</div>
-                            <div id = 'sprintEstimate'></div>
-                            <div id = 'sprintBurndown'></div>
-                            <div id = 'sprintRemain'></div>
-                        </div>
+                                {% empty %}
+                                    <li>No PBI pulled yet.</li>
+                                {% endfor%}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class = "sprintInfo">
+                        <h5>Sprint Statistics:</h5><hr>
+                        <div id = "sprintNum">Current Sprint: Sprint {{ project.sprint }}</div>
+                        <div id = 'sprintAvailable'>Available Effort: {{ project.sprintEffort }} hours</div>
+                        <div id = 'sprintEstimate'></div>
+                        <div id = 'sprintBurndown'></div>
+                        <div id = 'sprintRemain'></div>
                     </div>
                 </div>
-            {% endif %}
-        </div>
-        {% endblock content %}
-        {% block extrascripts %}
-            <script type="text/javascript">
-            $(function() {
-                let projectStatus = document.getElementById('topic').attributes.status.value;
-                if (projectStatus == "True") {
-                    $(".changeSprintInfo").each(function () {
-                        $(this).modalForm({formURL: $(this).data('id')});
+            </div>
+        {% endif %}
+    </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+            let projectStatus = document.getElementById('topic').attributes.status.value;
+            if (projectStatus == "True") {
+                $(".changeSprintInfo").each(function () {
+                    $(this).modalForm({formURL: $(this).data('id')});
+                });
+                $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $(".alert").slideUp(500);
+                });
+                let taskList = document.getElementsByClassName('task');
+                let taskListlength = taskList.length;
+                for(let t = 0; t < taskListlength; t++){
+                    let taskID = taskList[t].attributes.dataid.value;
+                    taskList[t].addEventListener('click', ()=> {
+                        location.href = '/myApp/taskDetails/'+taskID;
                     });
-                    $(".alert").fadeTo(2000, 500).slideUp(500, function(){
-                        $(".alert").slideUp(500);
-                    });
-                    let taskList = document.getElementsByClassName('task');
-                    let taskListlength = taskList.length;
-                    for(let t = 0; t < taskListlength; t++){
-                        let taskID = taskList[t].attributes.dataid.value;
-                        taskList[t].addEventListener('click', ()=> {
-                            location.href = '/myApp/taskDetails/'+taskID;
-                        });
-                    
-                    }
-
-                    let pull = document.getElementsByClassName('pull-task')[0];
-                    let pullList = document.getElementsByClassName('pullTask')[0];
-                    pull.addEventListener('click', () => {
-                        let pullTask = pullList.options[pullList.selectedIndex].value;
-                        if (pullTask != -1){
-                            $.post( "pull", {
-                                'pbiid':pullTask,
-                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                                window.setTimeout(function () {
-                                location.href = '/myApp/sprintBacklog';
-                                }, 0)
-                            }
-                            ); 
-                        }
-                    })
-
-                    let createBtn = document.getElementById('createTask');
-                    createBtn.addEventListener('click', () => {
-                        location.href = '/myApp/sprintBacklog/taskCreation';
-                    })
-
-                    let deleteBtn = document.getElementsByClassName('deletePulled');
-                    let deletePulledLength = deleteBtn.length;
-                    for (let i = 0; i < deletePulledLength; i++) {
-                        deleteBtn[i].addEventListener('click', () => {
-                            let pulled = deleteBtn[i].attributes.pulled.value
-                            $.post( "deletePulled", {
-                                'pbiid':pulled,
-                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                                window.setTimeout(function () {
-                                location.href = '/myApp/sprintBacklog';
-                                }, 0)
-                            }
-                            ); 
-                        })
-                    }
-
-                    let pbiTotalEstimate = []
-                    let pbiTotalRemain = []
-                    let pbiTotalBurndown = []
-                    let pbiNum = document.getElementsByClassName('pbi').length
-                    let sprintEstimate = 0;
-                    let sprintBurndown = 0;
-                    let sprintRemain = 0;
-                    for (let i = 0; i<pbiNum; i++) {
-                        let targetE = `estimate${i}`;
-                        let targetB = `burndown${i}`;
-                        let estimates =  document.getElementsByClassName(targetE);
-                        let burndowns = document.getElementsByClassName(targetB);
-                        let taskNum = document.getElementsByClassName(targetE).length;
-                        let estimate = 0;
-                        let burndown = 0;
-                        let remain = 0;
-                        for (let j = 0; j < taskNum; j ++){
-                            estimate += parseInt(estimates[j].attributes.hour.value);
-                            burndown += parseInt(burndowns[j].attributes.hour.value);
-                            remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
-                            sprintEstimate += parseInt(estimates[j].attributes.hour.value);
-                            sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
-                            sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
-                        }
-                        pbiTotalEstimate.push(estimate);
-                        pbiTotalBurndown.push(burndown);
-                        pbiTotalRemain.push(remain);
-                    }
-                    let pbiEstimates = document.getElementsByClassName('pbiEstimate');
-                    let pbiBurndowns = document.getElementsByClassName('pbiBurndown');
-                    let pbiRemains = document.getElementsByClassName('pbiRemain');
-                    for(let i = 0; i < pbiEstimates.length; i++){
-                        pbiEstimates[i].innerHTML = `Total Estimate: ${pbiTotalEstimate[i]} hours`;
-                        pbiBurndowns[i].innerHTML = `Total Burndown: ${pbiTotalBurndown[i]} hours`;
-                        pbiRemains[i].innerHTML=`Remaining: ${pbiTotalRemain[i]} hours`;
-                    }
-                    document.getElementById('sprintEstimate').innerHTML = `Total estimate: ${sprintEstimate} hours`;
-                    document.getElementById('sprintBurndown').innerHTML = `Total Burndown: ${sprintBurndown} hours`;
-                    document.getElementById('sprintRemain').innerHTML = `Remaining: ${sprintRemain} hours`;
-
-                    if(sprintRemain == 0){
-                        let clear = document.createElement('button');
-                        clear.innerHTML = "CLEAR";
-                        clear.className = "btn btn-danger btn-lg";
-                        clear.type = "button";
-                        let btnZone = document.getElementsByClassName('buttonContainer2')[0];
-                        btnZone.append(clear);
-                        clear.addEventListener('click', () => {
-                            $.post( "clear", {
-                                //temp project id, will be stored as state variable when authentication is inplaced.
-                                'projectid':1,
-                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                                window.setTimeout(function () {
-                                location.href = '/myApp/sprintBacklog';
-                                }, 0)
-                            }
-                            ); 
-                        })
-                    }
+                
                 }
-                else {
-                    let startBtn = document.getElementById('startBtn')
-                    startBtn.addEventListener('click', () => {
-                        projectId = startBtn.attributes.project.value;
-                            $.post( "startProject", {
-                                //temp project id, will be stored as state variable when authentication is inplaced.
-                                'projectid':projectId,
-                                csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                                window.setTimeout(function () {
-                                location.href = '/myApp/sprintBacklog';
-                                }, 0)
-                            }
-                            ); 
+
+                let pull = document.getElementsByClassName('pull-task')[0];
+                let pullList = document.getElementsByClassName('pullTask')[0];
+                pull.addEventListener('click', () => {
+                    let pullTask = pullList.options[pullList.selectedIndex].value;
+                    if (pullTask != -1){
+                        $.post( "pull", {
+                            'pbiid':pullTask,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = '/myApp/sprintBacklog';
+                            }, 0)
+                        }
+                        ); 
+                    }
+                })
+
+                let createBtn = document.getElementById('createTask');
+                createBtn.addEventListener('click', () => {
+                    location.href = '/myApp/sprintBacklog/taskCreation';
+                })
+
+                let deleteBtn = document.getElementsByClassName('deletePulled');
+                let deletePulledLength = deleteBtn.length;
+                for (let i = 0; i < deletePulledLength; i++) {
+                    deleteBtn[i].addEventListener('click', () => {
+                        let pulled = deleteBtn[i].attributes.pulled.value
+                        $.post( "deletePulled", {
+                            'pbiid':pulled,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = '/myApp/sprintBacklog';
+                            }, 0)
+                        }
+                        ); 
                     })
                 }
 
-            });
-            </script>
-        {% endblock extrascripts %}
-    </body>
-</html>
+                let pbiTotalEstimate = []
+                let pbiTotalRemain = []
+                let pbiTotalBurndown = []
+                let pbiNum = document.getElementsByClassName('pbi').length
+                let sprintEstimate = 0;
+                let sprintBurndown = 0;
+                let sprintRemain = 0;
+                for (let i = 0; i<pbiNum; i++) {
+                    let targetE = `estimate${i}`;
+                    let targetB = `burndown${i}`;
+                    let estimates =  document.getElementsByClassName(targetE);
+                    let burndowns = document.getElementsByClassName(targetB);
+                    let taskNum = document.getElementsByClassName(targetE).length;
+                    let estimate = 0;
+                    let burndown = 0;
+                    let remain = 0;
+                    for (let j = 0; j < taskNum; j ++){
+                        estimate += parseInt(estimates[j].attributes.hour.value);
+                        burndown += parseInt(burndowns[j].attributes.hour.value);
+                        remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
+                        sprintEstimate += parseInt(estimates[j].attributes.hour.value);
+                        sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
+                        sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
+                    }
+                    pbiTotalEstimate.push(estimate);
+                    pbiTotalBurndown.push(burndown);
+                    pbiTotalRemain.push(remain);
+                }
+                let pbiEstimates = document.getElementsByClassName('pbiEstimate');
+                let pbiBurndowns = document.getElementsByClassName('pbiBurndown');
+                let pbiRemains = document.getElementsByClassName('pbiRemain');
+                for(let i = 0; i < pbiEstimates.length; i++){
+                    pbiEstimates[i].innerHTML = `Total Estimate: ${pbiTotalEstimate[i]} hours`;
+                    pbiBurndowns[i].innerHTML = `Total Burndown: ${pbiTotalBurndown[i]} hours`;
+                    pbiRemains[i].innerHTML=`Remaining: ${pbiTotalRemain[i]} hours`;
+                }
+                document.getElementById('sprintEstimate').innerHTML = `Total estimate: ${sprintEstimate} hours`;
+                document.getElementById('sprintBurndown').innerHTML = `Total Burndown: ${sprintBurndown} hours`;
+                document.getElementById('sprintRemain').innerHTML = `Remaining: ${sprintRemain} hours`;
+
+                if(sprintRemain == 0){
+                    let clear = document.createElement('button');
+                    clear.innerHTML = "CLEAR";
+                    clear.className = "btn btn-danger btn-lg";
+                    clear.type = "button";
+                    let btnZone = document.getElementsByClassName('buttonContainer2')[0];
+                    btnZone.append(clear);
+                    clear.addEventListener('click', () => {
+                        $.post( "clear", {
+                            //temp project id, will be stored as state variable when authentication is inplaced.
+                            'projectid':1,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = '/myApp/sprintBacklog';
+                            }, 0)
+                        }
+                        ); 
+                    })
+                }
+            }
+            else {
+                let startBtn = document.getElementById('startBtn')
+                startBtn.addEventListener('click', () => {
+                    projectId = startBtn.attributes.project.value;
+                        $.post( "startProject", {
+                            //temp project id, will be stored as state variable when authentication is inplaced.
+                            'projectid':projectId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = '/myApp/sprintBacklog';
+                            }, 0)
+                        }
+                        ); 
+                })
+            }
+
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}
