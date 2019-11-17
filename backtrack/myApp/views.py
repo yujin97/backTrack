@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+# from django.core.urlresolvers import reverse
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy
 from myApp.models import Project, PBI, PickedPBI, Task
@@ -11,6 +13,12 @@ from django.db.models import Q
 
 # Create your views here.
 
+@login_required
+def loginRoute(request):
+    if request.user.is_productOwner:
+        return ProductOwnerViewCurrent.as_view()(request)
+    else:
+        return ProductOwnerViewAll.as_view()(request)
 
 class ProductOwnerViewCurrent(ListView):
     template_name = 'PBI_list.html'
