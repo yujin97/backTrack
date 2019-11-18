@@ -6,7 +6,7 @@ urlpatterns = [
 	# path('customerOrders/<int:customer>',views.CustomerViewOrders.as_view(),name='customer-orders'),
 	# view for showing all pbis
 	path('loginRoute', views.loginRoute,name = 'loginRoute'),
-	path('pbis/', views.ProductOwnerViewCurrent.as_view(), name='pbi_list'),
+	path('pbis/', views.productBacklogRoute, name='pbi_list'),
 	path('allPbis/', views.ProductOwnerViewAll.as_view(), name='all_pbis'),
 	path('pbis/detail/<int:pk>', views.PBIDetailView.as_view(), name='pbi_detail'),
 	path('pbis/realDetail/<int:pk>', views.PBIRealDetailView.as_view(), name='pbi_realDetail'),

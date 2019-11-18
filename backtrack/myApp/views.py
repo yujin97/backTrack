@@ -16,14 +16,30 @@ from django.db.models import Q
 @login_required
 def loginRoute(request):
     if request.user.is_productOwner:
-        return ProductOwnerViewCurrent.as_view()(request)
+        return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
     else:
         return ProductOwnerViewAll.as_view()(request)
 
-class ProductOwnerViewCurrent(ListView):
+@login_required
+def productBacklogRoute(request):
+    if request.user.is_productOwner:
+        return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+    else:
+        return ProductOwnerViewAll.as_view()(request)
+
+class ProductOwnerViewCurrent(TemplateView):
     template_name = 'PBI_list.html'
-    model = PBI
-    ordering = ['priority']
+    projectId = None
+
+    def get_context_data(self, **kwargs):
+
+            context = super().get_context_data(**kwargs)
+
+            pbis = PBI.objects.order_by('priority').filter(project__pk=self.projectId).all()
+            
+            context['pbi_list'] = pbis
+
+            return context
 
     def priority_up_view(request):
         myid = request.POST.get('myid', '') # function to get param from POST
@@ -114,7 +130,7 @@ class ProductOwnerViewCurrent(ListView):
         obj = PBI.objects.filter(id=myid).first()
         mypriority = obj.priority
         obj.delete()
-        others = PBI.objects.all()
+        others = PBI.objects.order_by('priority')
         for other in others:
             if (other.priority and other.priority > mypriority):
                 other.priority = (other.priority - 1)

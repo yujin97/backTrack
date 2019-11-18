@@ -126,28 +126,12 @@
             for (let i = 0; i<delLength; i++){
                 let deleted = delButton[i].attributes.priority.value
                 delButton[i].addEventListener('click', ()=> {
-                    $.post( "delete", {
+                    $.post( "{% url 'pbi_delete' %}", {
                         'myid':delButton[i].attributes.dataid.value,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                        let delButton = document.getElementsByClassName('pbi-delete');
-                        let delLength = delButton.length;
-                        for(let j = 0; j< delLength; j++){
-                            if (delButton[j].attributes.priority.value > deleted) {
-                                $.post("priorityAutoUpdate", {
-                                    'myid': delButton[j].attributes.dataid.value,
-                                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                                }, () => {
-                                            window.setTimeout(function () {
-                                            location.href = '/myApp/pbis';
-                                        }, 0)
-                                })
-                                }
-                            else {
-                                        window.setTimeout(function () {
-                                        location.href = '/myApp/pbis';
-                                    }, 0)
-                            }
-                            }
+                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                            window.setTimeout(function () {
+                            location.href = "{% url 'pbi_list' %}";
+                            }, 0)
                         });
                     }
                 );
@@ -161,12 +145,12 @@
                 ups[i].addEventListener('click', ()=> {
                     let previous = ups[i-1];
                     if(previous!=undefined){
-                        $.post( "up", {
+                        $.post( "{% url 'pbi_up' %}", {
                             'upid':previous.id,
                             'myid':ups[i].id,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/pbis';
+                            location.href = "{% url 'pbi_list' %}";
                             }, 0)
                         }
                     );
@@ -179,12 +163,12 @@
                 downs[i].addEventListener('click', ()=> {
                     let next = ups[i+1];
                     if(next!=undefined){
-                        $.post( "down", {
+                        $.post( "{% url 'pbi_down' %}", {
                             'downid':next.id,
                             'myid':downs[i].id,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/pbis';
+                            location.href = "{% url 'pbi_list' %}";
                             }, 0)
                         }
                         );
@@ -198,22 +182,22 @@
                 changeStatus[i].addEventListener('change', ()=> {
                         let newValue = changeStatus[i].options[changeStatus[i].selectedIndex].value;
                         if(newValue != 3){
-                        $.post( "statusChange", {
+                        $.post( "{% url 'status_change' %}", {
                             'myid':changeStatus[i].attributes.dataid.value,
                             'newStatus': newValue,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/pbis';
+                            location.href = "{% url 'pbi_list' %}";
                             }, 0)
                         }
                         ); 
                         } else {
-                            $.post( "processDone", {
+                            $.post( "{% url 'process_done' %}", {
                                 'myid':changeStatus[i].attributes.dataid.value,
                                 'newStatus': newValue,
                             csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                                 window.setTimeout(function () {
-                                location.href = '/myApp/pbis';
+                                location.href = "{% url 'pbi_list' %}";
                                 }, 0)
                             }
                             ); 
@@ -227,12 +211,12 @@
                         let targetPriority = insertField[i].value;
                         let myid = insertBtn[i].attributes.pbiId.value;
                         if(targetPriority){
-                            $.post( "priorityInsert", {
+                            $.post( "{% url 'priority_insert' %}", {
                                 'myid':myid,
                                 'targetPriority': targetPriority,
                                 csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                                     window.setTimeout(function () {
-                                    location.href = '/myApp/pbis';
+                                    location.href = "{% url 'pbi_list' %}";
                                 }, 0)
                             }
                             );
