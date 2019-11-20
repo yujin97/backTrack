@@ -15,17 +15,77 @@ from django.db.models import Q
 
 @login_required
 def loginRoute(request):
-    if request.user.is_productOwner:
-        return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
-    else:
-        return ProductOwnerViewAll.as_view()(request)
+    if request.user.is_developer:
+        if request.user.is_productOwner:
+            return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+        elif request.user.is_devTeam:
+            return NonProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+        else:
+            return DevLoginNoProject.as_view()(request)
+    elif request.user.is_manager:
+        return ScrumMasterPbList.as_view()(request)
 
 @login_required
 def productBacklogRoute(request):
-    if request.user.is_productOwner:
-        return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
-    else:
-        return ProductOwnerViewAll.as_view()(request)
+    if request.user.is_developer:
+        if request.user.is_productOwner:
+            return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+        elif request.user.is_devTeam:
+                return NonProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+        else:
+            return DevLoginNoProject.as_view()(request)
+    elif request.user.is_manager:
+        return ScrumMasterPbList.as_view()(request)
+
+@login_required
+def scrumMasterProductBacklogRoute(request, projectId = None):
+    if request.user.is_manager:
+        if request.user.is_scrumMaster:
+            target = Project.objects.get(pk=projectId)
+            flag = False
+            for project in request.user.project.all():
+                if project == target:
+                    flag = True
+                    break
+            if flag:
+                return NonProductOwnerViewCurrent.as_view(projectId=projectId)(request)
+
+@login_required
+def sprintBacklogRoute(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner:
+            return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+        elif request.user.is_devTeam:
+                return SprintBacklog.as_view(projectId=request.user.project.all().first().pk)(request)
+        else:
+            return DevLoginNoProject.as_view()(request)
+    elif request.user.is_manager:
+        return ScrumMasterPbList.as_view()(request)
+
+@login_required
+def scrumMasterProductBacklogAllRoute(request, projectId = None):
+    if request.user.is_manager:
+        if request.user.is_scrumMaster:
+            target = Project.objects.get(pk=projectId)
+            flag = False
+            for project in request.user.project.all():
+                if project == target:
+                    flag = True
+                    break
+            if flag:
+                return NonProductOwnerViewAll.as_view(projectId=projectId)(request)
+
+@login_required
+def productBacklogAllRoute(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner:
+            return ProductOwnerViewAll.as_view(projectId=request.user.project.all().first().pk)(request)
+        elif request.user.is_devTeam:
+                return NonProductOwnerViewAll.as_view(projectId=request.user.project.all().first().pk)(request)
+        else:
+            return DevLoginNoProject.as_view()(request)
+    elif request.user.is_manager:
+        return ScrumMasterPbList.as_view()(request)
 
 class ProductOwnerViewCurrent(TemplateView):
     template_name = 'PBI_list.html'
@@ -33,13 +93,13 @@ class ProductOwnerViewCurrent(TemplateView):
 
     def get_context_data(self, **kwargs):
 
-            context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
-            pbis = PBI.objects.order_by('priority').filter(project__pk=self.projectId).all()
+        pbis = PBI.objects.order_by('priority').filter(project__pk=self.projectId).all()
             
-            context['pbi_list'] = pbis
+        context['pbi_list'] = pbis
 
-            return context
+        return context
 
     def priority_up_view(request):
         myid = request.POST.get('myid', '') # function to get param from POST
@@ -90,14 +150,14 @@ class ProductOwnerViewCurrent(TemplateView):
         targetPriority = target.priority
         if target.status == 1 and targetPriority != obj.priority:
             if targetPriority < obj.priority:
-                affecteds = PBI.objects.order_by('-priority').filter(Q(priority__lt = obj.priority) & Q(priority__gte = target.priority))
+                affecteds = PBI.objects.order_by('-priority').filter(Q(project = obj.project) & Q(priority__lt = obj.priority) & Q(priority__gte = target.priority))
                 obj.priority = None
                 obj.save()
                 for affected in affecteds:
                     affected.priority = affected.priority + 1
                     affected.save()
             else:
-                affecteds = PBI.objects.order_by('priority').filter(Q(priority__gt = obj.priority) & Q(priority__lte = target.priority))
+                affecteds = PBI.objects.order_by('priority').filter(Q(project = obj.project) & Q(priority__gt = obj.priority) & Q(priority__lte = target.priority))
                 obj.priority = None
                 obj.save()
                 for affected in affecteds:
@@ -130,15 +190,13 @@ class ProductOwnerViewCurrent(TemplateView):
         obj = PBI.objects.filter(id=myid).first()
         mypriority = obj.priority
         obj.delete()
-        others = PBI.objects.order_by('priority')
+        others = PBI.objects.order_by('priority').filter(project=obj.project)
         for other in others:
             if (other.priority and other.priority > mypriority):
                 other.priority = (other.priority - 1)
                 other.save()
         context = {
         }
-        # return HttpResponseRedirect('/myApp/pbis')
-        # return render(request, 'PBI_list.html', {})
         return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
     def priority_auto_view(request):
@@ -158,7 +216,7 @@ class ProductOwnerViewCurrent(TemplateView):
         obj.priority = None
         obj.status = 3
         obj.save()
-        others = PBI.objects.all()
+        others = PBI.objects.order_by('priority').filter(project=obj.project)
         for other in others:
             if other.priority != None and mypriority != None:
                 if other.priority > mypriority:
@@ -166,18 +224,95 @@ class ProductOwnerViewCurrent(TemplateView):
                     other.save()
         return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
-class ProductOwnerViewAll(ListView):
+class NonProductOwnerViewCurrent(TemplateView):
+    template_name = 'PBI_list_nonPM.html'
+    projectId = None
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        project = self.projectId
+        projectName = Project.objects.get(pk=self.projectId).title;
+        pbis = PBI.objects.order_by('priority').filter(project__pk=self.projectId).all()
+        
+        context['pbi_list'] = pbis
+        context['project'] = project
+        context['projectName'] = projectName
+        return context
+
+
+class DevLoginNoProject(TemplateView):
+    template_name = 'dev_noProject.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        return context
+
+class ScrumMasterPbList(TemplateView):
+    template_name = 'scrumMasterPbList.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        return context
+
+class ProductOwnerViewAll(TemplateView):
     template_name = 'PBI_fullList.html'
-    model = PBI
-    ordering = ['name']
+    projectId = None
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        pbis = PBI.objects.order_by('sprintNo').filter(project__pk=self.projectId).all()
+            
+        context['pbi_list'] = pbis
+
+        return context
+
+class NonProductOwnerViewAll(TemplateView):
+    template_name = 'PBI_fullList_nonPM.html'
+    projectId = None
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        project = self.projectId
+        projectName = Project.objects.get(pk=self.projectId).title;
+        pbis = PBI.objects.order_by('sprintNo').filter(project__pk=self.projectId).all()
+            
+        context['pbi_list'] = pbis
+        context['project'] = project
+        context['projectName'] = projectName
+
+        return context
+
+class PbiCreation(TemplateView):
+    template_name = "pbiCreation.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+    def create(request):
+        projectId = request.POST.get('project', '')
+        project = Project.objects.get(pk=projectId)
+        name = request.POST.get('name', '')
+        description = request.POST.get('description', '')
+        estimate = request.POST.get('estimate', '')
+        addedPBI = PBI(name = name, Description = description, estimate = estimate, project = project, status = 1)
+        addedPBI.save()
+        return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
 
-class PBICreateView(BSModalCreateView):
-    model = PBI
-    template_name = 'modalPage/PBI_create.html'
-    form_class = PBIForm
-    success_message = 'Success: PBI was created.'
-    success_url = reverse_lazy('all_pbis')
+# class PBICreateView(BSModalCreateView):
+#     model = PBI
+#     template_name = 'modalPage/PBI_create.html'
+#     form_class = PBIForm
+#     success_message = 'Success: PBI was created.'
+#     success_url = reverse_lazy('all_pbis')
 
 class PBIDetailView(BSModalUpdateView):
     model = PBI
@@ -193,15 +328,16 @@ class PBIRealDetailView(BSModalUpdateView):
     success_message = 'Success: PBI was updated.'
     success_url = reverse_lazy('pbi_list')
 
-class PBIDeleteView(BSModalDeleteView):
-    model = PBI
-    template_name = 'modalPage/PBI_delete.html'
-    success_message = 'Success: PBI was deleted.'
-    success_url = reverse_lazy('pbi_list')
+# class PBIDeleteView(BSModalDeleteView):
+#     model = PBI
+#     template_name = 'modalPage/PBI_delete.html'
+#     success_message = 'Success: PBI was deleted.'
+#     success_url = reverse_lazy('pbi_list')
 
 ## Views for sprint backlog functions
 class SprintBacklog(TemplateView):
     template_name = "sprintBacklog.html"
+    projectId = None
 
     def get_context_data(self, **kwargs):
         # owner = self.kwargs['Users']
@@ -209,10 +345,10 @@ class SprintBacklog(TemplateView):
         context = super().get_context_data(**kwargs)
 
         #temp project value before the authentication is inplaced.
-        project = Project.objects.get(pk=1)
-        pbis = PickedPBI.objects.order_by('pbi__name').all()
+        project = Project.objects.get(pk=self.projectId)
+        pbis = PickedPBI.objects.order_by('pbi__name').filter(pbi__project=project)
         tasks = Task.objects.all()
-        pbisToBePulled = PBI.objects.order_by('priority').filter(status=1)
+        pbisToBePulled = PBI.objects.order_by('priority').filter(Q(project = project) & Q(status = 1))
         notStarted = []
         inProgress = []
         done = []
@@ -270,11 +406,10 @@ class SprintBacklog(TemplateView):
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
     def clear(request):
-        projectid = request.POST.get('projectid', '')
-        project = Project.objects.get(pk=projectid)
+        project = request.user.project.all().first()
         pbis = []
-        pickedPbis = PickedPBI.objects.order_by('pbi__priority').all()
-        others = PBI.objects.order_by('priority').all()
+        pickedPbis = PickedPBI.objects.order_by('pbi__priority').filter(pbi__project = project)
+        others = PBI.objects.order_by('priority').filter(project=project)
         for pbi in pickedPbis:
             if pbi.pbi.project == project:
                 pbis.append(pbi.pbi)
@@ -298,8 +433,7 @@ class SprintBacklog(TemplateView):
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
     def startProject(request):
-        projectid = request.POST.get('projectid')
-        project = Project.objects.get(pk=projectid)
+        project = request.user.project.all().first()
         project.started = True
         project.save()
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
@@ -344,8 +478,7 @@ class taskDetails(TemplateView):
     def pick(request):
         taskid = request.POST.get('taskid', '')
         task = Task.objects.get(pk=taskid)
-        devid = request.POST.get('devid', '')
-        dev = None
+        dev = request.user
         pbiid = request.POST.get('pbiid', '')
         pbi = PickedPBI.objects.get(pk=pbiid)
         task.pic = dev
@@ -403,9 +536,9 @@ class taskCreation(TemplateView):
     template_name = "taskCreation.html"
 
     def get_context_data(self, **kwargs):
-
+        project = self.request.user.project.all().first()
         context = super().get_context_data(**kwargs)
-        pickedPbi = PickedPBI.objects.all()
+        pickedPbi = PickedPBI.objects.filter(pbi__project = project)
         context['pbis'] = pickedPbi
 
         return context

@@ -21,7 +21,7 @@
                 <button type="button" class="pbi-create btn btn-primary" data-id="{% url 'pbi_create' %}">
                     Create New PBI
                 </button>
-                <a href ='/myApp/pbis'>See current PBI </a>
+                <a href ="{% url 'pbi_list' %}">See current PBI </a>
             </div>
             <br/>
             <table class="table table-striped small">
@@ -41,12 +41,12 @@
                             <td>{{ pbi.name }}</td>
                             <td>{{ pbi.estimate }}</td>
                             <td>{{ pbi.Description }}</td>
+                            <td>{{ pbi.get_status_display }}</td>
                             {% if pbi.sprintNo == None %}
                             <td>Not Picked</td>
                             {% else %}
                             <td>{{ pbi.sprintNo }}</td>
                             {% endif %}
-                            <td>{{ pbi.get_status_display }}</td>
                             <td>
                                 {% if pbi.status == 1 %}
                                 <button type="button" class="pbi-detail btn btn-sm btn-primary" data-id="{% url 'pbi_detail' pbi.pk %}">
@@ -76,7 +76,7 @@
                                     {% endif %}
                                 </select>
                                 {% if pbi.status == 1 %}
-                                <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} data-id="{% url 'pbi_delete' pbi.pk %}">
+                                <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} >
                                     X
                                 </button>
                                  {% endif %}
@@ -92,28 +92,26 @@
     {% block extrascripts %}
         <script type="text/javascript">
         $(function() {
-            $(".pbi-create").each(function () {
-                $(this).modalForm({formURL: $(this).data('id')});
-            });
             $(".pbi-detail").each(function () {
                 $(this).modalForm({formURL: $(this).data('id')});
             });
             $(".pbi-realDetail").each(function () {
                 $(this).modalForm({formURL: $(this).data('id')});
             });                
-            // $(".pbi-delete").each(function () {
-            //     $(this).modalForm({formURL: $(this).data('id')});
-            // });
+            let createBtn = document.getElementsByClassName('pbi-create')[0];
+            createBtn.addEventListener('click', () => {
+                location.href = "{% url 'pbi_create' %}";
+            })
             let delButton = document.getElementsByClassName('pbi-delete');
             let delLength = delButton.length;
             for (let i = 0; i<delLength; i++){
                 let deleted = delButton[i].attributes.priority.value
                 delButton[i].addEventListener('click', ()=> {
-                    $.post( "/myApp/pbis/delete", {
+                    $.post( "{% url 'pbi_delete' %}", {
                         'myid':delButton[i].attributes.dataid.value,
                     csrfmiddlewaretoken: '{{ csrf_token }}'} , () => {
                          window.setTimeout(function () {
-                            location.href = '/myApp/allPbis';
+                            location.href = "{% url 'all_pbis' %}";
                         })
                     } );
                     }
@@ -128,22 +126,22 @@
                 changeStatus[i].addEventListener('change', ()=> {
                         let newValue = changeStatus[i].options[changeStatus[i].selectedIndex].value;
                         if(newValue != 3){
-                        $.post( "/myApp/pbis/statusChange", {
+                        $.post( "{% url 'status_change' %}", {
                             'myid':changeStatus[i].attributes.dataid.value,
                             'newStatus': newValue,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/allPbis';
+                            location.href = "{% url 'all_pbis' %}";
                             }, 0)
                         }
                         ); 
                         } else {
-                            $.post( "/myApp/pbis/processDone", {
+                            $.post( "{% url 'process_done' %}", {
                                 'myid':changeStatus[i].attributes.dataid.value,
                                 'newStatus': newValue,
                             csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                                 window.setTimeout(function () {
-                                location.href = '/myApp/allPbis';
+                                location.href = "{% url 'all_pbis' %}";
                                 }, 0)
                             }
                             ); 

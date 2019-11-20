@@ -7,7 +7,7 @@ from myApp.models import User
 class PBIForm(BSModalForm):
     class Meta:
         model = PBI
-        fields = ['name', 'estimate', 'Description', 'project']
+        fields = ['name', 'estimate', 'Description']
 
 class SprintUpdateForm(BSModalForm):
     class Meta:

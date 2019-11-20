@@ -13,18 +13,15 @@
         <div style="background-color:#FAFAFA;padding:15px 20px;">
             <div class="card">
               <div class="card-header">
-                Task Creation
+                Create New PBI
               </div>
                   <div class="card-body">
                     <div class='zone detail1'>
                         <div class = 'pbi'>
-                            <div>PBI:</div>
-                            <select class="selectedPbi nextLabel" id = 'pbi' >
-                                <option value= '-1' selected = "selected">-Not Selected-</option>
-                                {% for pbi in pbis %}
-                                    <option value= '{{ pbi.pk }}'>{{ pbi.pbi.name}}</option>
-                                {% endfor %}
-                            </select>
+                            <div>Project:</div>
+                            {% for project in user.project.all %}
+                                <span id = "project" class="nextLabel" project = "{{ project.pk }}">{{ project.title }}</span>
+                            {% endfor %}
                         </div>
                         <div class='buttons'>
                             <button type="button" class="btn btn-success btn-sm" id = 'create'>Create</button>
@@ -55,24 +52,24 @@
         <script type="text/javascript">
         $(function() {             
             let create = document.getElementById('create');
-            let pbiList = document.getElementById('pbi');
+            let project = document.getElementById('project');
             let name = document.getElementById('name');
             let description = document.getElementById('description');
             let estimate = document.getElementById('estimate');
             create.addEventListener('click', () => {
-                let pbi = pbiList.options[pbiList.selectedIndex].value;
+                let projectv = project.attributes.project.value;
                 let namev = name.value;
                 let descriptionv = description.value;
                 let estimatev = estimate.value
-                if (pbi != -1 && namev != "" && descriptionv != "" && estimatev != ""){
-                    $.post( "{% url 'task_creation_create' %}", {
-                        'pbi':pbi,
+                if (namev != "" && descriptionv != "" && estimatev != ""){
+                    $.post( "{% url 'pbi_create_operation' %}", {
+                        'project':projectv,
                         'name':namev,
                         'description': descriptionv,
                         'estimate': estimatev,
                     csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                         window.setTimeout(function () {
-                        location.href = "{% url 'sprint_backlog' %}";
+                        location.href = "{% url 'pbi_list' %}";
                         }, 0)
                     }
                     ); 

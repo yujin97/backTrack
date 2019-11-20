@@ -1,0 +1,96 @@
+{% extends 'base.html' %}    
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            {% if user.is_scrumMaster %}
+            <h1>Showing current PBI of {{ projectName }}</h1>
+            {% else %}
+            <h1>Showing current PBI</h1>
+            {% endif %}
+            {% if user.is_authenticated %}
+            {% else %}
+            <h2>You are not logged in.</h2>
+            {% endif %}
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+            <br/>
+            <div>
+                {% if user.is_developer %}
+                <a href ="{% url 'all_pbis' %}">See all PBI </a>
+                {% else %}
+                <a href ="{% url 'all_pbis_scrum' project %}">See all PBI </a>
+                {% endif %}
+            </div>
+            <br/>
+            <table class="table table-striped small">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Estimate</th>
+                        <th scope="col">Acc. Estimate</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Priority</th>
+                        <th scope="col">Sprint</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myTable">
+                    {% for pbi in pbi_list %}
+                        {% if pbi.status != 3 %}
+                        <tr>
+                            <td>{{ pbi.name }}</td>
+                            <td class = "estimate">{{ pbi.estimate }}</td>
+                            <td class = "accEstimate"></td>
+                            <td>{{ pbi.Description }}</td>
+                            <td>{{ pbi.get_status_display }}</td>
+                            <td>{{ pbi.priority }}</td>
+                            {% if pbi.sprintNo == None %}
+                            <td>Not Picked</td>
+                            {% else %}
+                            <td>{{ pbi.sprintNo }}</td>
+                            {% endif %}
+                            <td>
+                                <button type="button" class="pbi-realDetail btn btn-sm btn-primary" data-id="{% url 'pbi_realDetail' pbi.pk %}">
+                                    Detail
+                                </button>                                    
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% empty %}
+                        <li>No PBI yet.</li>
+                    {% endfor%}
+                </tbody>
+            </table>
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+            $(".pbi-realDetail").each(function () {
+                $(this).modalForm({formURL: $(this).data('id')});
+            });                
+           
+            let acc = document.getElementsByClassName('accEstimate');
+            let est = document.getElementsByClassName('estimate')
+            let estLength = acc.length
+            acc[0].innerHTML = parseInt(est[0].innerText)
+            for (let i = 1; i < estLength; i++){
+                let accValue = parseInt(acc[i-1].innerText) + parseInt(est[i].innerText);
+                acc[i].innerHTML = accValue;
+            }
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

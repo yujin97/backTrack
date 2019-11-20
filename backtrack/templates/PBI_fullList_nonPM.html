@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            {% if user.is_scrumMaster %}
+            <h1>Showing all PBI of {{ projectName }}</h1>
+            {% else %}
+            <h1>Showing all PBI</h1>
+            {% endif %}
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+            <br/>
+            <div>
+                {% if user.is_developer %}
+                <a href ="{% url 'pbi_list' %}">See current PBI </a>
+                {% else %}
+                <a href ="{% url 'pbi_list_scrum' project %}">See current PBI </a>
+                {% endif %}
+            </div>
+            <br/>
+            <table class="table table-striped small">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Estimate</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Sprint</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myTable">
+                    {% for pbi in pbi_list %}
+                        <tr>
+                            <td>{{ pbi.name }}</td>
+                            <td>{{ pbi.estimate }}</td>
+                            <td>{{ pbi.Description }}</td>
+                            <td>{{ pbi.get_status_display }}</td>
+                            {% if pbi.sprintNo == None %}
+                            <td>Not Picked</td>
+                            {% else %}
+                            <td>{{ pbi.sprintNo }}</td>
+                            {% endif %}
+                            <td>
+                                <button type="button" class="pbi-realDetail btn btn-sm btn-primary" data-id="{% url 'pbi_realDetail' pbi.pk %}">
+                                    Detail
+                                </button>                                    
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <li>No PBI yet.</li>
+                    {% endfor%}
+                </tbody>
+            </table>
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+            $(".pbi-realDetail").each(function () {
+                $(this).modalForm({formURL: $(this).data('id')});
+            });                
+            $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+                $(".alert").slideUp(500);
+            });
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

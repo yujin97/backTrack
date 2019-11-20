@@ -72,7 +72,7 @@
                                             <div class = "taskContainer">
                                                 {% for notStarted in notStartedTasks %}
                                                     {% if notStarted.pbiPicked == pbi %}
-                                            <div class = 'task' dataid = "{{ notStarted.pk }}">
+                                            <div class = 'task' dataid = "{{ notStarted.pk }}" detail = "{% url 'task_details' notStarted.pk %}">
                                                 <div>{{ notStarted.name }}</div>
                                                 <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.estimate }} >estimate: {{ notStarted.estimate }} hours</div>
                                                 <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.complete }}>burndown: {{ notStarted.complete }} hours</div>
@@ -86,7 +86,7 @@
                                         <div class = "taskContainer">
                                             {% for inProgress in inProgressTasks %}
                                                 {% if inProgress.pbiPicked == pbi %}
-                                                    <div class = 'task' dataid = "{{ inProgress.pk }}">
+                                                    <div class = 'task' dataid = "{{ inProgress.pk }}"  detail = "{% url 'task_details' inProgress.pk %}">
                                                         {{ inProgress.name }}
                                                         <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.estimate }}>estimate: {{ inProgress.estimate }} hours</div>
                                                         <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.complete }} >burndown: {{ inProgress.complete }} hours</div>
@@ -100,7 +100,7 @@
                                         <div class = "taskContainer">
                                             {% for done in doneTasks %}
                                                 {% if done.pbiPicked == pbi %}
-                                                    <div class = 'task' dataid = "{{ done.pk }}">
+                                                    <div class = 'task' dataid = "{{ done.pk }}"  detail = "{% url 'task_details' done.pk %}">
                                                         {{ done.name }}
                                                         <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ done.estimate }} >estimate: {{ done.estimate }} hours</div>
                                                         <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ done.complete }} >burndown: {{ done.complete }} hours</div>
@@ -146,7 +146,7 @@
                 for(let t = 0; t < taskListlength; t++){
                     let taskID = taskList[t].attributes.dataid.value;
                     taskList[t].addEventListener('click', ()=> {
-                        location.href = '/myApp/taskDetails/'+taskID;
+                        location.href = taskList[t].attributes.detail.value;
                     });
                 
                 }
@@ -156,11 +156,11 @@
                 pull.addEventListener('click', () => {
                     let pullTask = pullList.options[pullList.selectedIndex].value;
                     if (pullTask != -1){
-                        $.post( "pull", {
+                        $.post( "{% url 'task_pull' %}", {
                             'pbiid':pullTask,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog';
+                            location.href = "{% url 'sprint_backlog' %}";
                             }, 0)
                         }
                         ); 
@@ -169,7 +169,7 @@
 
                 let createBtn = document.getElementById('createTask');
                 createBtn.addEventListener('click', () => {
-                    location.href = '/myApp/sprintBacklog/taskCreation';
+                    location.href = "{% url 'task_creation' %}";
                 })
 
                 let deleteBtn = document.getElementsByClassName('deletePulled');
@@ -177,11 +177,11 @@
                 for (let i = 0; i < deletePulledLength; i++) {
                     deleteBtn[i].addEventListener('click', () => {
                         let pulled = deleteBtn[i].attributes.pulled.value
-                        $.post( "deletePulled", {
+                        $.post( "{% url 'task_delete' %}", {
                             'pbiid':pulled,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog';
+                            location.href = "{% url 'sprint_backlog' %}";
                             }, 0)
                         }
                         ); 
@@ -237,11 +237,9 @@
                     btnZone.append(clear);
                     clear.addEventListener('click', () => {
                         $.post( "clear", {
-                            //temp project id, will be stored as state variable when authentication is inplaced.
-                            'projectid':1,
                         csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog';
+                            location.href = "{% url 'sprint_backlog' %}";
                             }, 0)
                         }
                         ); 
@@ -252,12 +250,10 @@
                 let startBtn = document.getElementById('startBtn')
                 startBtn.addEventListener('click', () => {
                     projectId = startBtn.attributes.project.value;
-                        $.post( "startProject", {
-                            //temp project id, will be stored as state variable when authentication is inplaced.
-                            'projectid':projectId,
+                        $.post( "{% url 'sprintBacklog_startProject' %}", {
                             csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                             window.setTimeout(function () {
-                            location.href = '/myApp/sprintBacklog';
+                            location.href = "{% url 'sprint_backlog' %}";
                             }, 0)
                         }
                         ); 
