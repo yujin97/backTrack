@@ -84,7 +84,7 @@
                         </div>
                         <div class = "pic">
                             <div>
-                            person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
+                            person-in-charged: {% if task.pic %} {{ task.pic.username }} {% else %} None {% endif %}
                             </div>
                         </div>
                      </div>
@@ -108,7 +108,9 @@
                             {% if task.status == 3 %}
                                 <option value= 3 selected = "selected">Done</option>
                             {% else %}
+                                {% if task.estimate == task.complete %}
                                 <option value= 3 >Done</option>
+                                {% endif %}
                             {% endif %}
                         </select>
                     </div>
@@ -152,7 +154,7 @@
                     let descriptionv = description.value;
                     let estimatev = estimate.value
                     if (namev != "" && descriptionv != "" && estimatev != ""){
-                        $.post( "edit", {
+                        $.post( "{% url 'task_details_edit' %}", {
                             'taskid':taskId,
                             'name':namev,
                             'description': descriptionv,
@@ -170,12 +172,10 @@
                 })
                 let pickbtn = document.getElementById('pick');
                 pickbtn.addEventListener('click', () => {
-                    let devid = 1 //temp, will change after authentication is implemented
                     let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
                     let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                    $.post( "pick", {
+                    $.post( "{% url 'task_details_pick' %}", {
                         'taskid':taskId,
-                        'devid': devid,
                         'pbiid': pbiId,
                     csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                         window.setTimeout(function () {
@@ -188,12 +188,12 @@
                 deleteBtn.addEventListener('click',() => {
                     let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
                     let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                    $.post( "delete", {
+                    $.post( "{% url 'task_details_delete' %}", {
                         'taskid':taskId,
                         'pbiid':pbiId,
                     csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
                         window.setTimeout(function () {
-                        location.href = '/myApp/sprintBacklog'
+                        location.href = "{% url 'sprint_backlog' %}"
                         }, 0)
                     }
                     );                         
@@ -205,7 +205,7 @@
                     let status = statusList.options[statusList.selectedIndex].value;
                     let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
                     let pbiId = document.getElementsByClassName('id')[0].attributes.pbiId.value;
-                    $.post( "changeStatus", {
+                    $.post( "{% url 'task_details_changeStatus' %}", {
                         'taskid':taskId,
                         'status': status,
                         'pbiid': pbiId,
@@ -222,7 +222,7 @@
                         let complete = document.getElementById('complete').value;
                         let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
                         if(complete){
-                            $.post( "changeComplete", {
+                            $.post( "{% url 'task_details_changeComplete' %}", {
                                 'estimate':estimatev,
                                 'taskid':taskId,
                                 'complete': complete,

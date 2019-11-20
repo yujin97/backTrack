@@ -22,10 +22,10 @@
             </div>
             <br/>
             <div>
-                <button type="button" class="pbi-create btn btn-primary" data-id="{% url 'pbi_create' %}">
+                <button type="button" class="pbi-create btn btn-primary" ">
                     Create New PBI
                 </button>
-                <a href ='/myApp/allPbis'>View all PBI </a>
+                <a href = "{% url 'all_pbis' %}">View all PBI </a>
             </div>
             <br/>
             <table class="table table-striped small">
@@ -92,7 +92,7 @@
                                     {% endif %}
                                 </select>
                                 {% if pbi.status == 1 %}
-                                <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} data-id="{% url 'pbi_delete' pbi.pk %}">
+                                <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} >
                                     X
                                 </button>
                                  {% endif %}
@@ -109,18 +109,19 @@
     {% block extrascripts %}
         <script type="text/javascript">
         $(function() {
-            $(".pbi-create").each(function () {
-                $(this).modalForm({formURL: $(this).data('id')});
-            });
             $(".pbi-detail").each(function () {
                 $(this).modalForm({formURL: $(this).data('id')});
             });
             $(".pbi-realDetail").each(function () {
                 $(this).modalForm({formURL: $(this).data('id')});
             });                
-            // $(".pbi-delete").each(function () {
-            //     $(this).modalForm({formURL: $(this).data('id')});
-            // });
+
+            // To PBI creation page
+            let createBtn = document.getElementsByClassName('pbi-create')[0];
+            createBtn.addEventListener('click', () => {
+                location.href = "{% url 'pbi_create' %}";
+            })
+
             let delButton = document.getElementsByClassName('pbi-delete');
             let delLength = delButton.length;
             for (let i = 0; i<delLength; i++){

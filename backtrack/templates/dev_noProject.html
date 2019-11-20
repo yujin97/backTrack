@@ -1,0 +1,24 @@
+{% extends 'base.html' %}    
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/login_dev_noProject.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+    <div style="background-color:#FAFAFA;padding:15px 20px;">
+    	<h2>Welcome {{ user.username }}, you can create a project.</h2>
+    	<div class = "buttonContainer">
+    	<button type="button" class="pbi-create btn btn-primary">
+    		Create Project
+    	</button>
+    	</div>
+    </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+    {% endblock extrascripts %}
+{% endblock %}

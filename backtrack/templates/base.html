@@ -50,6 +50,12 @@
 		    </div>
 		  </div>
 	</nav>
+	<br>
+	{% if user.is_developer %}
+	{% for pro in user.project.all %}
+	<p>{{ pro.title }}</p>
+	{% endfor %}
+	{% endif %}
 	{% block content %}
 	{% endblock %}
 	</body>
