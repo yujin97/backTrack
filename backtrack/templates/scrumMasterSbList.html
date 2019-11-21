@@ -1,0 +1,62 @@
+{% extends 'base.html' %}    
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <h1>Monitoring Sprint Backlogs</h1>
+            {% if user.is_authenticated %}
+            {% else %}
+            <h2>You are not logged in.</h2>
+            {% endif %}
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+            <br/>
+            <br/>
+            <table class="table table-striped small">
+                <thead>
+                    <tr>
+                        <th scope="col">Project Name</th>
+                        <th scope="col">Link</th>
+                    </tr>
+                </thead>
+                <tbody id="myTable">
+                    {% for project in user.project.all %}
+                        <tr>
+                            <td>{{ project.title }}</td>
+                            <td>
+                                <button type="button" class="inspectBtn btn btn-sm btn-primary" project ="{% url 'sprint_backlog_scrum' project.pk %}" >
+                                    Inspect
+                                </button>                                    
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <li>Not Monitoring any project</li>
+                    {% endfor%}
+                </tbody>
+            </table>
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function(){
+            let inspectBtns = document.getElementsByClassName('inspectBtn');
+            for (let i = 0; i < inspectBtns.length; i++){
+               inspectBtns[i].addEventListener('click',() => {
+                    let target = inspectBtns[i].attributes.project.value;
+                    location.href = target;
+               })
+            }
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

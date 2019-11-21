@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% load mathfilters %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/sprintStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <h1 id = "topic" status = {{ project.started }}>Sprint Backlog</h1>
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+            <br/>
+            {% if project.started == False %}
+                <div id = 'notStartedArea'>
+                <p>Sprint {{ project.sprint }} is not started yet.</p>
+                </div>
+            {% else %}
+                <div class = "main">
+                    <div class = "tableContainer">
+                        <table class="table table-striped small">
+                            <thead>
+                                <tr>
+                                    <th scope="col">PBI</th>
+                                    <th scope="col">Not Yet Started</th>
+                                    <th scope="col">In Progress</th>
+                                    <th scope="col">Done</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myTable">
+                                {% for pbi in pbis %}
+                                    <tr class = "pbi">
+                                        <td>{{ pbi.pbi.name }}<br>story points: {{ pbi.pbi.estimate }}
+                                            <div class = "pbiEstimate"></div>
+                                            <div class = "pbiBurndown"></div>
+                                            <div class = "pbiRemain"></div>
+                                        </td>
+                                        <td>
+                                            <div class = "taskContainer">
+                                                {% for notStarted in notStartedTasks %}
+                                                    {% if notStarted.pbiPicked == pbi %}
+                                            <div class = 'task' dataid = "{{ notStarted.pk }}" detail = "{% url 'task_details' notStarted.pk %}">
+                                                <div>{{ notStarted.name }}</div>
+                                                <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.estimate }} >estimate: {{ notStarted.estimate }} hours</div>
+                                                <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ notStarted.complete }}>burndown: {{ notStarted.complete }} hours</div>
+                                            </div>
+                                                    {% else %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                        <div class = "taskContainer">
+                                            {% for inProgress in inProgressTasks %}
+                                                {% if inProgress.pbiPicked == pbi %}
+                                                    <div class = 'task' dataid = "{{ inProgress.pk }}"  detail = "{% url 'task_details' inProgress.pk %}">
+                                                        {{ inProgress.name }}
+                                                        <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.estimate }}>estimate: {{ inProgress.estimate }} hours</div>
+                                                        <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ inProgress.complete }} >burndown: {{ inProgress.complete }} hours</div>
+                                                    </div>
+                                                {% else %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        </td>
+                                        <td>
+                                        <div class = "taskContainer">
+                                            {% for done in doneTasks %}
+                                                {% if done.pbiPicked == pbi %}
+                                                    <div class = 'task' dataid = "{{ done.pk }}"  detail = "{% url 'task_details' done.pk %}">
+                                                        {{ done.name }}
+                                                        <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ done.estimate }} >estimate: {{ done.estimate }} hours</div>
+                                                        <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ done.complete }} >burndown: {{ done.complete }} hours</div>
+                                                    </div>
+                                                {% else %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <li>No PBI pulled yet.</li>
+                                {% endfor%}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class = "sprintInfo">
+                        <h5>Sprint Statistics:</h5><hr>
+                        <div id = "sprintNum">Current Sprint: Sprint {{ project.sprint }}</div>
+                        <div id = 'sprintAvailable'>Available Effort: {{ project.sprintEffort }} hours</div>
+                        <div id = 'sprintEstimate'></div>
+                        <div id = 'sprintBurndown'></div>
+                        <div id = 'sprintRemain'></div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+            let projectStatus = document.getElementById('topic').attributes.status.value;
+            if (projectStatus == "True") {
+                $(".changeSprintInfo").each(function () {
+                    $(this).modalForm({formURL: $(this).data('id')});
+                });
+                $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $(".alert").slideUp(500);
+                });
+                let taskList = document.getElementsByClassName('task');
+                let taskListlength = taskList.length;
+                for(let t = 0; t < taskListlength; t++){
+                    let taskID = taskList[t].attributes.dataid.value;
+                    taskList[t].addEventListener('click', ()=> {
+                        location.href = taskList[t].attributes.detail.value;
+                    });
+                
+                }
+
+
+                let pbiTotalEstimate = []
+                let pbiTotalRemain = []
+                let pbiTotalBurndown = []
+                let pbiNum = document.getElementsByClassName('pbi').length
+                let sprintEstimate = 0;
+                let sprintBurndown = 0;
+                let sprintRemain = 0;
+                for (let i = 0; i<pbiNum; i++) {
+                    let targetE = `estimate${i}`;
+                    let targetB = `burndown${i}`;
+                    let estimates =  document.getElementsByClassName(targetE);
+                    let burndowns = document.getElementsByClassName(targetB);
+                    let taskNum = document.getElementsByClassName(targetE).length;
+                    let estimate = 0;
+                    let burndown = 0;
+                    let remain = 0;
+                    for (let j = 0; j < taskNum; j ++){
+                        estimate += parseInt(estimates[j].attributes.hour.value);
+                        burndown += parseInt(burndowns[j].attributes.hour.value);
+                        remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
+                        sprintEstimate += parseInt(estimates[j].attributes.hour.value);
+                        sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
+                        sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
+                    }
+                    pbiTotalEstimate.push(estimate);
+                    pbiTotalBurndown.push(burndown);
+                    pbiTotalRemain.push(remain);
+                }
+                let pbiEstimates = document.getElementsByClassName('pbiEstimate');
+                let pbiBurndowns = document.getElementsByClassName('pbiBurndown');
+                let pbiRemains = document.getElementsByClassName('pbiRemain');
+                for(let i = 0; i < pbiEstimates.length; i++){
+                    pbiEstimates[i].innerHTML = `Total Estimate: ${pbiTotalEstimate[i]} hours`;
+                    pbiBurndowns[i].innerHTML = `Total Burndown: ${pbiTotalBurndown[i]} hours`;
+                    pbiRemains[i].innerHTML=`Remaining: ${pbiTotalRemain[i]} hours`;
+                }
+                document.getElementById('sprintEstimate').innerHTML = `Total estimate: ${sprintEstimate} hours`;
+                document.getElementById('sprintBurndown').innerHTML = `Total Burndown: ${sprintBurndown} hours`;
+                document.getElementById('sprintRemain').innerHTML = `Remaining: ${sprintRemain} hours`;
+
+            }
+            else {
+
+            }
+
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

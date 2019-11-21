@@ -50,17 +50,32 @@ def scrumMasterProductBacklogRoute(request, projectId = None):
             if flag:
                 return NonProductOwnerViewCurrent.as_view(projectId=projectId)(request)
 
+
+
+@login_required
+def scrumMasterSprintBacklogRoute(request, projectId = None):
+    if request.user.is_manager:
+        if request.user.is_scrumMaster:
+            target = Project.objects.get(pk=projectId)
+            flag = False
+            for project in request.user.project.all():
+                if project == target:
+                    flag = True
+                    break
+            if flag:
+                return SprintBacklogNonDev.as_view(projectId=projectId)(request)
+
 @login_required
 def sprintBacklogRoute(request):
     if request.user.is_developer:
         if request.user.is_productOwner:
-            return ProductOwnerViewCurrent.as_view(projectId=request.user.project.all().first().pk)(request)
+            return SprintBacklogNonDev.as_view(projectId=request.user.project.all().first().pk)(request)
         elif request.user.is_devTeam:
                 return SprintBacklog.as_view(projectId=request.user.project.all().first().pk)(request)
         else:
             return DevLoginNoProject.as_view()(request)
     elif request.user.is_manager:
-        return ScrumMasterPbList.as_view()(request)
+        return scrumMasterSprintBacklogs.as_view()(request)
 
 @login_required
 def scrumMasterProductBacklogAllRoute(request, projectId = None):
@@ -259,6 +274,12 @@ class ScrumMasterPbList(TemplateView):
 
         return context
 
+class scrumMasterSprintBacklogs(TemplateView):
+    template_name = 'scrumMasterSbList.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
 class ProductOwnerViewAll(TemplateView):
     template_name = 'PBI_fullList.html'
     projectId = None
@@ -346,8 +367,8 @@ class SprintBacklog(TemplateView):
 
         #temp project value before the authentication is inplaced.
         project = Project.objects.get(pk=self.projectId)
-        pbis = PickedPBI.objects.order_by('pbi__name').filter(pbi__project=project)
-        tasks = Task.objects.all()
+        pbis = PickedPBI.objects.order_by('pbi__priority').filter(pbi__project=project)
+        tasks = Task.objects.filter(pbiPicked__pbi__project=project)
         pbisToBePulled = PBI.objects.order_by('priority').filter(Q(project = project) & Q(status = 1))
         notStarted = []
         inProgress = []
@@ -378,7 +399,7 @@ class SprintBacklog(TemplateView):
             if notPulled == True:
                 pullItems.append(pbiToBePulled)
         context['project'] = project
-        context['pbis'] = PickedPBI.objects.order_by('pbi__priority').all()
+        context['pbis'] = pbis
         context['notStartedTasks'] = notStarted
         context['inProgressTasks'] = inProgress
         context['doneTasks'] = done
@@ -438,6 +459,57 @@ class SprintBacklog(TemplateView):
         project.save()
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
+## Views for sprint backlog functions
+class SprintBacklogNonDev(TemplateView):
+    template_name = "sprintBacklog_nonDev.html"
+    projectId = None
+
+    def get_context_data(self, **kwargs):
+        # owner = self.kwargs['Users']
+
+        context = super().get_context_data(**kwargs)
+
+        #temp project value before the authentication is inplaced.
+        project = Project.objects.get(pk=self.projectId)
+        pbis = PickedPBI.objects.order_by('pbi__name').filter(pbi__project=project)
+        tasks = Task.objects.all()
+        pbisToBePulled = PBI.objects.order_by('priority').filter(Q(project = project) & Q(status = 1))
+        notStarted = []
+        inProgress = []
+        done = []
+        pullItems  = []
+        taskNum = []
+        for pbi in pbis:
+            taskNum.append(0);
+        for task in tasks:
+            i = 0
+            for pbi in pbis:
+                if task.pbiPicked == pbi:
+                    taskNum[i] = taskNum[i] + 1 
+                    if task.status == 1:
+                        notStarted.append(task)
+                    elif task.status == 2:
+                        inProgress.append(task)
+                    elif task.status == 3:
+                        done.append(task)
+                    break
+                i = i + 1
+        for pbiToBePulled in pbisToBePulled:
+            notPulled = True
+            for picked in pbis:
+                if picked.pbi == pbiToBePulled:
+                    notPulled = False
+                    break
+            if notPulled == True:
+                pullItems.append(pbiToBePulled)
+        context['project'] = project
+        context['pbis'] = PickedPBI.objects.order_by('pbi__priority').all()
+        context['notStartedTasks'] = notStarted
+        context['inProgressTasks'] = inProgress
+        context['doneTasks'] = done
+        context['pullItems'] = pullItems
+        context['taskNum'] = taskNum
+        return context
 
 class SprintUpdateView(BSModalUpdateView):
     model = Project
@@ -451,14 +523,12 @@ class taskDetails(TemplateView):
     template_name = "taskDetails.html"
 
     def get_context_data(self, **kwargs):
+        if self.request.user.is_devTeam == False:
+            self.template_name = "taskDetails_nonDev.html"
         task = self.kwargs['task']
-
         context = super().get_context_data(**kwargs)
-
         tasks = Task.objects.get(pk = task)
-        
         context['task'] = tasks
-
         return context
 
     def edit(request):
