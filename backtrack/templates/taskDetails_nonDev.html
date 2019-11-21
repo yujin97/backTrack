@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <div class="card">
+              <div class="card-header">
+                Task Details
+              </div>
+                  <div class="card-body">
+                    <div class='zone detail1'>
+                        <div class = 'id' status = {{ task.status }} id = 'id' taskId = {{ task.id }} pbiId = {{ task.pbiPicked.pk }}>
+                            ID: {{ task.id }}
+                        </div>
+                    </div>
+                    <div class="zone detail2">
+                        <div class ="name">
+                            Name:   <p class ="nextLabel">{{ task.name }}</p>
+                        </div>
+                        <div class = "pic">
+                            <div>
+                            person-in-charged: {% if task.pic %} {{ task.pic.username }} {% else %} None {% endif %}
+                            </div>
+                        </div>
+                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Description: 
+                        </div>
+                        <p class = "nextLabel" >{{ task.Description }}</p>
+                    </div>
+                    <div class = "zone detail4">
+                        <div>
+                            Status:
+                        </div>
+                        <div>
+                            <p class = "nextLabel" >{{ task.get_status_display }}</p>
+                        </div>
+                    </div>
+                    <div class = "zone detail5">
+                        <div>
+                        Estimate: 
+                        </div>
+                        <div class ="nextLabel">{{ task.estimate}} hours</div>
+                    </div>
+                    <div class = "zone detail6">
+                        <div>
+                        Completed Effort: 
+                        </div>
+                        <div class ="nextLabel">{{ task.estimate}} hours</div>
+                    </div>
+                </div>                    
+            </div>
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {
+
+
+            
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

@@ -23,6 +23,7 @@ urlpatterns = [
 	path('pbis/processDone', views.ProductOwnerViewCurrent.process_done_view, name='process_done'),
 	# paths related to sprint backlog
 	path('sprintBacklog/', views.sprintBacklogRoute, name='sprint_backlog'),
+	path('sprintBacklog/<int:projectId>', views.scrumMasterSprintBacklogRoute, name='sprint_backlog_scrum'),
 	path('taskDetails/<int:task>',views.taskDetails.as_view(),name='task_details'),
 	path('taskDetails/edit',views.taskDetails.edit,name='task_details_edit'),
 	path('taskDetails/pick',views.taskDetails.pick,name='task_details_pick'),
