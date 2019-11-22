@@ -12,7 +12,7 @@
     {% block innerContent %}
     {% csrf_token %}
         <div style="background-color:#FAFAFA;padding:15px 20px;">
-            <h1 id = "topic" status = {{ project.started }}>Sprint Backlog</h1>
+            <h1 id = "topic" status = {{ project.started }}>Sprint Backlog of {{ project.title }}</h1>
             <div class="modal fade" tabindex="-1" role="dialog" id="modal">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content"></div>
