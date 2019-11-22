@@ -26,6 +26,27 @@ def loginRoute(request):
         return ScrumMasterPbList.as_view()(request)
 
 @login_required
+def projectCreation(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == False and request.user.is_devTeam == False:
+            return render(request,'projectCreation.html')
+
+@login_required
+def projectCreationOperation(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == False and request.user.is_devTeam == False:
+            user = request.user
+            name = request.POST.get('name','')
+            newProject = Project(title=name)
+            newProject.save()
+            user.project.add(newProject)
+            user.productOwner = True
+            user.save()
+            return HttpResponseRedirect(reverse_lazy('pbi_list'))
+
+
+
+@login_required
 def productBacklogRoute(request):
     if request.user.is_developer:
         if request.user.is_productOwner:

@@ -2,10 +2,11 @@ from django.urls import path
 from myApp import views
 
 urlpatterns = [
-	# prefered view for specific pbi details
-	# path('customerOrders/<int:customer>',views.CustomerViewOrders.as_view(),name='customer-orders'),
-	# view for showing all pbis
+	# project level views
 	path('loginRoute', views.loginRoute,name = 'loginRoute'),
+	path('createProject', views.projectCreation,name = 'project_creation'),
+	path('createProjectOperation', views.projectCreationOperation,name = 'project_creation_operation'),
+	# view for showing all pbis
 	path('pbis/', views.productBacklogRoute, name='pbi_list'),
 	path('allPbis/', views.productBacklogAllRoute, name='all_pbis'),
 	path('pbis/<int:projectId>', views.scrumMasterProductBacklogRoute, name='pbi_list_scrum'),

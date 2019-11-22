@@ -45,7 +45,7 @@
 		    </form> -->
 		    <div class="form-inline my-2 my-lg-0">
 		    	{% if user.is_authenticated %}
-		    		Hi! {{ user.username }}, you can <a href = "{% url 'logout' %}">LOGOUT</a> here.
+		    		<p style ="margin: 0">Hi! {{ user.username }}, you can <a href = "{% url 'logout' %}">LOGOUT</a> here.</p>
 		    	{% endif %}
 		    </div>
 		  </div>
@@ -53,7 +53,7 @@
 	<br>
 	{% if user.is_developer %}
 	{% for pro in user.project.all %}
-	<p>{{ pro.title }}</p>
+	<p class="p-3 mb-2 bg-light text-dark">{{ pro.title }}</p>
 	{% endfor %}
 	{% endif %}
 	{% block content %}
