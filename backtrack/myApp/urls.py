@@ -6,6 +6,9 @@ urlpatterns = [
 	path('loginRoute', views.loginRoute,name = 'loginRoute'),
 	path('createProject', views.projectCreation,name = 'project_creation'),
 	path('createProjectOperation', views.projectCreationOperation,name = 'project_creation_operation'),
+	path('inviteDevTeam', views.inviteDevTeam,name = 'invite_devTeam'),
+	path('inviteDevTeamOperation', views.inviteDevTeamOperation,name = 'invite_devTeam_operation'),
+	path('acceptDevTeam/<int:projectId>', views.acceptDevTeam,name = 'accept_devTeam'),
 	# view for showing all pbis
 	path('pbis/', views.productBacklogRoute, name='pbi_list'),
 	path('allPbis/', views.productBacklogAllRoute, name='all_pbis'),

@@ -1,14 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-# from django.core.urlresolvers import reverse
+from django.core import serializers
+from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy
-from myApp.models import Project, PBI, PickedPBI, Task
+from myApp.models import Project, PBI, PickedPBI, Task, User, invitedDev
 from myApp.forms import PBIForm, SprintUpdateForm
 from bootstrap_modal_forms.generic import (BSModalUpdateView, BSModalDeleteView, BSModalCreateView)
 from django.views.generic import ListView
 from django.http import HttpResponseRedirect
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 # Create your views here.
@@ -44,7 +47,58 @@ def projectCreationOperation(request):
             user.save()
             return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
+@login_required
+def inviteDevTeam(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == True:
+            return render (request, 'inviteDevTeam.html')
 
+@login_required
+def inviteDevTeamOperation(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == True:
+            email = request.POST.get('address','')
+            user = User.objects.filter(email= email)
+            if user:
+                invitation = invitedDev.objects.filter(Q(user=user.first()) & Q(project=request.user.project.all().first()))
+                project = user.first().project.all()
+                if invitation:
+                    data = {'msg': 'The user is already invited to this project', 'go': False}
+                    return JsonResponse(data,safe = False)
+                elif project:
+                    data = {'msg': 'The user is in another project', 'go': False}
+                    return JsonResponse(data,safe = False)
+                else: 
+                    data = {'msg': 'can add', 'go': True}
+                    addUser = user.first()
+                    addProject = request.user.project.all().first()
+                    addInvitation = invitedDev(user=addUser, project = addProject)
+                    addInvitation.save()
+                    title = f'backTrack Invitation from the project {addProject.title}'
+                    content = f'Please click the link below to join the project: localhost:8000/myApp/acceptDevTeam/{addProject.pk}'
+                    host = 'hku.backtrack@gmail.com'
+                    recipients = [addUser.email,]
+                    send_mail(title,
+                        content,
+                        host,
+                        recipients,
+                        fail_silently=False)
+                    return JsonResponse(data,safe = False)
+            else:
+                data = {'msg': 'User does not exist!'}
+                return JsonResponse(data,safe = False)
+
+@login_required
+def acceptDevTeam(request,projectId):
+    acceptUser = request.user
+    acceptProject = Project.objects.get(pk=projectId)
+    invitation = invitedDev.objects.filter(Q(user=acceptUser) & Q(project=acceptProject))
+    if invitation:
+        acceptUser.project.add(acceptProject)
+        acceptUser.devTeam = True
+        acceptUser.save()
+        invitation.first().delete()
+        return render(request,'acceptDevTeam.html')
 
 @login_required
 def productBacklogRoute(request):
@@ -492,8 +546,8 @@ class SprintBacklogNonDev(TemplateView):
 
         #temp project value before the authentication is inplaced.
         project = Project.objects.get(pk=self.projectId)
-        pbis = PickedPBI.objects.order_by('pbi__name').filter(pbi__project=project)
-        tasks = Task.objects.all()
+        pbis = PickedPBI.objects.order_by('pbi__priority').filter(pbi__project=project)
+        tasks = Task.objects.filter(pbiPicked__pbi__project=project)
         pbisToBePulled = PBI.objects.order_by('priority').filter(Q(project = project) & Q(status = 1))
         notStarted = []
         inProgress = []
@@ -524,7 +578,7 @@ class SprintBacklogNonDev(TemplateView):
             if notPulled == True:
                 pullItems.append(pbiToBePulled)
         context['project'] = project
-        context['pbis'] = PickedPBI.objects.order_by('pbi__priority').all()
+        context['pbis'] = pbis
         context['notStartedTasks'] = notStarted
         context['inProgressTasks'] = inProgress
         context['doneTasks'] = done
@@ -567,18 +621,19 @@ class taskDetails(TemplateView):
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
     def pick(request):
-        taskid = request.POST.get('taskid', '')
-        task = Task.objects.get(pk=taskid)
-        dev = request.user
-        pbiid = request.POST.get('pbiid', '')
-        pbi = PickedPBI.objects.get(pk=pbiid)
-        task.pic = dev
-        task.status = 2
-        pbi.notYetStarted = pbi.notYetStarted - 1
-        pbi.inProgress = pbi.inProgress + 1
-        task.save()
-        pbi.save()
-        return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
+        if request.user.project.all().first().started == True:
+            taskid = request.POST.get('taskid', '')
+            task = Task.objects.get(pk=taskid)
+            dev = request.user
+            pbiid = request.POST.get('pbiid', '')
+            pbi = PickedPBI.objects.get(pk=pbiid)
+            task.pic = dev
+            task.status = 2
+            pbi.notYetStarted = pbi.notYetStarted - 1
+            pbi.inProgress = pbi.inProgress + 1
+            task.save()
+            pbi.save()
+            return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
     def changeStatus(request):
         taskid = request.POST.get('taskid', '')
