@@ -34,8 +34,8 @@
                         <div class = "pic">
                             <div>
                             person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
-                            </div>
-                            {% if not task.pic %}
+                            </div> 
+                            {% if not task.pic and user.project.0.started == true %}
                             <div>
                                 <button type="button" class="btn btn-dark btn-sm" id = "pick">Pick</button>
                             </div>

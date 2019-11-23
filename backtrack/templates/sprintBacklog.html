@@ -23,7 +23,7 @@
                 <div id = 'notStartedArea'>
                 <button type="button" class = "btn btn-primary btn-lg" id = "startBtn" project = {{ project.pk }}>Start Sprint {{ project.sprint }}</button>
                 </div>
-            {% else %}
+            {% endif %}
                 <div>
                     <select class ="pullTask">
                         <option value = '-1'  selected = "selected">Please pull a PBI from the Product Backlog</option>
@@ -39,11 +39,13 @@
                     <button type="button" class="btn btn-primary btn-lg" id = "createTask">
                         Create task
                     </button>
+                    {% if project.started == False %}
                     <div class = "buttonContainer2">
                         <button type="button" class="changeSprintInfo btn btn-primary sm-lg" data-id="{% url 'sprintBacklog_changeSprintInfo' project.pk %}">
                             Edit Available Effort 
                         </button>
                     </div>
+                    {% endif %}
                 </div>
                 <br/>
                 <div class = "main">
@@ -127,126 +129,125 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
     </div>
     {% endblock innerContent %}
     {% block extrascripts %}
         <script type="text/javascript">
         $(function() {
             let projectStatus = document.getElementById('topic').attributes.status.value;
-            if (projectStatus == "True") {
+            if(projectStatus == "False"){
                 $(".changeSprintInfo").each(function () {
                     $(this).modalForm({formURL: $(this).data('id')});
                 });
-                $(".alert").fadeTo(2000, 500).slideUp(500, function(){
-                    $(".alert").slideUp(500);
-                });
-                let taskList = document.getElementsByClassName('task');
-                let taskListlength = taskList.length;
-                for(let t = 0; t < taskListlength; t++){
-                    let taskID = taskList[t].attributes.dataid.value;
-                    taskList[t].addEventListener('click', ()=> {
-                        location.href = taskList[t].attributes.detail.value;
-                    });
-                
-                }
-
-                let pull = document.getElementsByClassName('pull-task')[0];
-                let pullList = document.getElementsByClassName('pullTask')[0];
-                pull.addEventListener('click', () => {
-                    let pullTask = pullList.options[pullList.selectedIndex].value;
-                    if (pullTask != -1){
-                        $.post( "{% url 'task_pull' %}", {
-                            'pbiid':pullTask,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = "{% url 'sprint_backlog' %}";
-                            }, 0)
-                        }
-                        ); 
-                    }
-                })
-
-                let createBtn = document.getElementById('createTask');
-                createBtn.addEventListener('click', () => {
-                    location.href = "{% url 'task_creation' %}";
-                })
-
-                let deleteBtn = document.getElementsByClassName('deletePulled');
-                let deletePulledLength = deleteBtn.length;
-                for (let i = 0; i < deletePulledLength; i++) {
-                    deleteBtn[i].addEventListener('click', () => {
-                        let pulled = deleteBtn[i].attributes.pulled.value
-                        $.post( "{% url 'task_delete' %}", {
-                            'pbiid':pulled,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = "{% url 'sprint_backlog' %}";
-                            }, 0)
-                        }
-                        ); 
-                    })
-                }
-
-                let pbiTotalEstimate = []
-                let pbiTotalRemain = []
-                let pbiTotalBurndown = []
-                let pbiNum = document.getElementsByClassName('pbi').length
-                let sprintEstimate = 0;
-                let sprintBurndown = 0;
-                let sprintRemain = 0;
-                for (let i = 0; i<pbiNum; i++) {
-                    let targetE = `estimate${i}`;
-                    let targetB = `burndown${i}`;
-                    let estimates =  document.getElementsByClassName(targetE);
-                    let burndowns = document.getElementsByClassName(targetB);
-                    let taskNum = document.getElementsByClassName(targetE).length;
-                    let estimate = 0;
-                    let burndown = 0;
-                    let remain = 0;
-                    for (let j = 0; j < taskNum; j ++){
-                        estimate += parseInt(estimates[j].attributes.hour.value);
-                        burndown += parseInt(burndowns[j].attributes.hour.value);
-                        remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
-                        sprintEstimate += parseInt(estimates[j].attributes.hour.value);
-                        sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
-                        sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
-                    }
-                    pbiTotalEstimate.push(estimate);
-                    pbiTotalBurndown.push(burndown);
-                    pbiTotalRemain.push(remain);
-                }
-                let pbiEstimates = document.getElementsByClassName('pbiEstimate');
-                let pbiBurndowns = document.getElementsByClassName('pbiBurndown');
-                let pbiRemains = document.getElementsByClassName('pbiRemain');
-                for(let i = 0; i < pbiEstimates.length; i++){
-                    pbiEstimates[i].innerHTML = `Total Estimate: ${pbiTotalEstimate[i]} hours`;
-                    pbiBurndowns[i].innerHTML = `Total Burndown: ${pbiTotalBurndown[i]} hours`;
-                    pbiRemains[i].innerHTML=`Remaining: ${pbiTotalRemain[i]} hours`;
-                }
-                document.getElementById('sprintEstimate').innerHTML = `Total estimate: ${sprintEstimate} hours`;
-                document.getElementById('sprintBurndown').innerHTML = `Total Burndown: ${sprintBurndown} hours`;
-                document.getElementById('sprintRemain').innerHTML = `Remaining: ${sprintRemain} hours`;
-
-                if(sprintRemain == 0){
-                    let clear = document.createElement('button');
-                    clear.innerHTML = "CLEAR";
-                    clear.className = "btn btn-danger btn-lg";
-                    clear.type = "button";
-                    let btnZone = document.getElementsByClassName('buttonContainer2')[0];
-                    btnZone.append(clear);
-                    clear.addEventListener('click', () => {
-                        $.post( "clear", {
-                        csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
-                            window.setTimeout(function () {
-                            location.href = "{% url 'sprint_backlog' %}";
-                            }, 0)
-                        }
-                        ); 
-                    })
-                }
             }
-            else {
+            $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+                $(".alert").slideUp(500);
+            });
+            let taskList = document.getElementsByClassName('task');
+            let taskListlength = taskList.length;
+            for(let t = 0; t < taskListlength; t++){
+                let taskID = taskList[t].attributes.dataid.value;
+                taskList[t].addEventListener('click', ()=> {
+                    location.href = taskList[t].attributes.detail.value;
+                });
+            
+            }
+
+            let pull = document.getElementsByClassName('pull-task')[0];
+            let pullList = document.getElementsByClassName('pullTask')[0];
+            pull.addEventListener('click', () => {
+                let pullTask = pullList.options[pullList.selectedIndex].value;
+                if (pullTask != -1){
+                    $.post( "{% url 'task_pull' %}", {
+                        'pbiid':pullTask,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = "{% url 'sprint_backlog' %}";
+                        }, 0)
+                    }
+                    ); 
+                }
+            })
+
+            let createBtn = document.getElementById('createTask');
+            createBtn.addEventListener('click', () => {
+                location.href = "{% url 'task_creation' %}";
+            })
+
+            let deleteBtn = document.getElementsByClassName('deletePulled');
+            let deletePulledLength = deleteBtn.length;
+            for (let i = 0; i < deletePulledLength; i++) {
+                deleteBtn[i].addEventListener('click', () => {
+                    let pulled = deleteBtn[i].attributes.pulled.value
+                    $.post( "{% url 'task_delete' %}", {
+                        'pbiid':pulled,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = "{% url 'sprint_backlog' %}";
+                        }, 0)
+                    }
+                    ); 
+                })
+            }
+
+            let pbiTotalEstimate = []
+            let pbiTotalRemain = []
+            let pbiTotalBurndown = []
+            let pbiNum = document.getElementsByClassName('pbi').length
+            let sprintEstimate = 0;
+            let sprintBurndown = 0;
+            let sprintRemain = 0;
+            for (let i = 0; i<pbiNum; i++) {
+                let targetE = `estimate${i}`;
+                let targetB = `burndown${i}`;
+                let estimates =  document.getElementsByClassName(targetE);
+                let burndowns = document.getElementsByClassName(targetB);
+                let taskNum = document.getElementsByClassName(targetE).length;
+                let estimate = 0;
+                let burndown = 0;
+                let remain = 0;
+                for (let j = 0; j < taskNum; j ++){
+                    estimate += parseInt(estimates[j].attributes.hour.value);
+                    burndown += parseInt(burndowns[j].attributes.hour.value);
+                    remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
+                    sprintEstimate += parseInt(estimates[j].attributes.hour.value);
+                    sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
+                    sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
+                }
+                pbiTotalEstimate.push(estimate);
+                pbiTotalBurndown.push(burndown);
+                pbiTotalRemain.push(remain);
+            }
+            let pbiEstimates = document.getElementsByClassName('pbiEstimate');
+            let pbiBurndowns = document.getElementsByClassName('pbiBurndown');
+            let pbiRemains = document.getElementsByClassName('pbiRemain');
+            for(let i = 0; i < pbiEstimates.length; i++){
+                pbiEstimates[i].innerHTML = `Total Estimate: ${pbiTotalEstimate[i]} hours`;
+                pbiBurndowns[i].innerHTML = `Total Burndown: ${pbiTotalBurndown[i]} hours`;
+                pbiRemains[i].innerHTML=`Remaining: ${pbiTotalRemain[i]} hours`;
+            }
+            document.getElementById('sprintEstimate').innerHTML = `Total estimate: ${sprintEstimate} hours`;
+            document.getElementById('sprintBurndown').innerHTML = `Total Burndown: ${sprintBurndown} hours`;
+            document.getElementById('sprintRemain').innerHTML = `Remaining: ${sprintRemain} hours`;
+
+            if(sprintRemain == 0 && projectStatus == "True"){
+                let clear = document.createElement('button');
+                clear.innerHTML = "CLEAR";
+                clear.className = "btn btn-danger btn-lg";
+                clear.type = "button";
+                let btnZone = document.getElementsByClassName('buttonContainer2')[0];
+                btnZone.append(clear);
+                clear.addEventListener('click', () => {
+                    $.post( "clear", {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'}, () => {
+                        window.setTimeout(function () {
+                        location.href = "{% url 'sprint_backlog' %}";
+                        }, 0)
+                    }
+                    ); 
+                })
+            }
+            if(projectStatus == "False") {
                 let startBtn = document.getElementById('startBtn')
                 startBtn.addEventListener('click', () => {
                     projectId = startBtn.attributes.project.value;

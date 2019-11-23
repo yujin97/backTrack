@@ -53,7 +53,10 @@
 	<br>
 	{% if user.is_developer %}
 	{% for pro in user.project.all %}
-	<p class="p-3 mb-2 bg-light text-dark">{{ pro.title }}</p>
+	<p class="p-3 mb-2 bg-light text-dark">{{ pro.title }} <br>
+		<a href = "{% url 'invite_devTeam' %}">Invite Devlopment Team Member</a> <br>
+		<a href = "{% url 'invite_devTeam' %}">Invite Scrum Master</a>
+	</p>
 	{% endfor %}
 	{% endif %}
 	{% block content %}

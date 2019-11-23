@@ -125,3 +125,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = '/myApp/loginRoute'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'hku.backtrack@gmail.com'
+EMAIL_HOST_PASSWORD = "testing00@"
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False

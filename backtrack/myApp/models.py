@@ -213,32 +213,8 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
-# class done(models.Model):
-
-#     name = models.CharField(max_length=200, blank=True)
-#     estimate = models.DecimalField(max_digits=5, decimal_places=1)
-#     Description = models.CharField(max_length=400)
-#     sprint_id = models.IntegerField(default = 1)
-#     project_linkage = models.ForeignKey(Product_Backlog, on_delete=models.CASCADE, default = get_default_project)
-#     sprint_linkage = models.ForeignKey(Sprints, on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return self.name
-
-
-# class Users(models.Model):
-#     ROLES = (
-#         (1, 'Product Owner'),
-#         (2, 'Scrum Master'),
-#         (3, 'Developer'),
-#     )
-#     name = models.CharField(max_length=200)
-#     role = models.PositiveSmallIntegerField(
-#         choices=ROLES,
-#         default=3,
-#     )
-#     project_id = models.IntegerField(blank=True, null=True)
-#     proj = models.OneToOneField(Project, on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return self.name
+class invitedDev(models.Model):
+    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    def __str__(self):
+        return f'{self.user.email} ({self.project.title})'
