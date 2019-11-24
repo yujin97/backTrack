@@ -39,13 +39,13 @@
                     <button type="button" class="btn btn-primary btn-lg" id = "createTask">
                         Create task
                     </button>
-                    {% if project.started == False %}
                     <div class = "buttonContainer2">
+                        {% if project.started == False %}
                         <button type="button" class="changeSprintInfo btn btn-primary sm-lg" data-id="{% url 'sprintBacklog_changeSprintInfo' project.pk %}">
                             Edit Available Effort 
                         </button>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
                 <br/>
                 <div class = "main">
