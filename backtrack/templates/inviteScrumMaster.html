@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+    {% block scripts %}
+        <script src="{% static 'assets/js/jquery-3.4.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'assets/css/taskStyles.css' %}">
+    {% endblock scripts %}
+    {% block innerContent %}
+    {% csrf_token %}
+        <div style="background-color:#FAFAFA;padding:15px 20px;">
+            <div class="card">
+              <div class="card-header">
+                Invite Scrum Master
+              </div>
+                  <div class="card-body">
+                    <div clss = 'zone' id = 'errorMsg' style = "color:red"></div>
+                    <div class='zone detail1'>
+                        <div class ="name">
+                            Staff E-mail Address:   <input type="email" class ="nextLabel" id = "address" value = ""/>
+                        </div>
+                        <div class='buttons'>
+                            <button type="button" class="btn btn-success btn-sm" id = 'invite'>Invite</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock innerContent %}
+    {% block extrascripts %}
+        <script type="text/javascript">
+        $(function() {             
+            let invite = document.getElementById('invite');
+            let address = document.getElementById('address');
+            invite.addEventListener('click', () => {
+                let addressv = address.value;
+                let error = document.getElementById('errorMsg')
+                if (addressv != "" ){
+                    $.post( "{% url 'invite_scrumMaster_operation' %}", {
+                        'address':addressv,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'})
+                    .done( (msg) => {
+                            if(msg.go){
+                                console.log('direct to pbi')
+                                window.setTimeout(()=> {
+                                    location.href = "{% url 'pbi_list' %}"
+                                })
+                            }
+                            else {
+                                error.innerHTML = msg.msg
+                            }
+                        })
+                    .fail( (xhr, textStatus, errorThrown) => {
+                        console.log('user does not exist')
+                    })
+                    }
+                else {
+                    alert('Please provide all information.');
+                }
+            })
+        });
+        </script>
+    {% endblock extrascripts %}
+{% endblock %}

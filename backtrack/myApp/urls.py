@@ -9,6 +9,9 @@ urlpatterns = [
 	path('inviteDevTeam', views.inviteDevTeam,name = 'invite_devTeam'),
 	path('inviteDevTeamOperation', views.inviteDevTeamOperation,name = 'invite_devTeam_operation'),
 	path('acceptDevTeam/<int:projectId>', views.acceptDevTeam,name = 'accept_devTeam'),
+	path('inviteScrumMaster', views.inviteScrumMaster,name = 'invite_scrumMaster'),
+	path('inviteScrumMasterOperation', views.inviteScrumMasterOperation,name = 'invite_scrumMaster_operation'),
+	path('acceptScrumMaster/<int:projectId>', views.acceptScrumMaster,name = 'accept_scrumMaster'),
 	# view for showing all pbis
 	path('pbis/', views.productBacklogRoute, name='pbi_list'),
 	path('allPbis/', views.productBacklogAllRoute, name='all_pbis'),
@@ -23,7 +26,7 @@ urlpatterns = [
 	path('pbis/statusChange', views.ProductOwnerViewCurrent.status_change_view, name='status_change'),
 	path('pbis/priorityInsert', views.ProductOwnerViewCurrent.priority_insert_view, name='priority_insert'),
 	path('pbis/delete', views.ProductOwnerViewCurrent.pbi_delete_view, name='pbi_delete'),
-	path('pbis/priorityAutoUpdate', views.ProductOwnerViewCurrent.priority_auto_view, name='priority_auto'),
+	# path('pbis/priorityAutoUpdate', views.ProductOwnerViewCurrent.priority_auto_view, name='priority_auto'),
 	path('pbis/processDone', views.ProductOwnerViewCurrent.process_done_view, name='process_done'),
 	# paths related to sprint backlog
 	path('sprintBacklog/', views.sprintBacklogRoute, name='sprint_backlog'),

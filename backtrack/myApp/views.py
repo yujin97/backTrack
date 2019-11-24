@@ -4,7 +4,7 @@ from django.core import serializers
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy
-from myApp.models import Project, PBI, PickedPBI, Task, User, invitedDev
+from myApp.models import Project, PBI, PickedPBI, Task, User, invitedDev, invitedScrumMaster
 from myApp.forms import PBIForm, SprintUpdateForm
 from bootstrap_modal_forms.generic import (BSModalUpdateView, BSModalDeleteView, BSModalCreateView)
 from django.views.generic import ListView
@@ -65,6 +65,9 @@ def inviteDevTeamOperation(request):
                 if invitation:
                     data = {'msg': 'The user is already invited to this project', 'go': False}
                     return JsonResponse(data,safe = False)
+                elif user.first().is_developer == False:
+                    data = {'msg': 'The user is not a developer, hence cannot be added as developement team member', 'go': False}
+                    return JsonResponse(data,safe = False)
                 elif project:
                     data = {'msg': 'The user is in another project', 'go': False}
                     return JsonResponse(data,safe = False)
@@ -99,6 +102,63 @@ def acceptDevTeam(request,projectId):
         acceptUser.save()
         invitation.first().delete()
         return render(request,'acceptDevTeam.html')
+
+@login_required
+def inviteScrumMaster(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == True:
+            return render (request, 'inviteScrumMaster.html')
+
+@login_required
+def inviteScrumMasterOperation(request):
+    if request.user.is_developer:
+        if request.user.is_productOwner == True:
+            scrumMaster = User.objects.filter(Q(project = request.user.project.all().first()) & Q(scrumMaster = True))
+            if scrumMaster:
+                target = scrumMaster.first()
+                msg = f'{target.username} is monitoring this project! There can only be one scrum master.' 
+                data = {'msg': msg, 'go': False}
+                return JsonResponse(data,safe = False)
+            else:
+                email = request.POST.get('address','')
+                user = User.objects.filter(email= email)
+                if user:
+                    invitation = invitedScrumMaster.objects.filter(Q(user=user.first()) & Q(project=request.user.project.all().first()))
+                    project = user.first().project.all()
+                    if user.first().is_manager == False:
+                        data = {'msg': 'The user is not a manager, hence cannot be added as scrum master', 'go': False}
+                        return JsonResponse(data,safe = False)
+                    elif invitation:
+                        data = {'msg': 'The user is already invited to this project', 'go': False}
+                        return JsonResponse(data,safe = False)
+                    else: 
+                        data = {'msg': 'can add', 'go': True}
+                        addUser = user.first()
+                        addProject = request.user.project.all().first()
+                        addInvitation = invitedScrumMaster(user=addUser, project = addProject)
+                        addInvitation.save()
+                        title = f'backTrack Invitation from the project {addProject.title}'
+                        content = f'Please click the link below to join the project: localhost:8000/myApp/acceptScrumMaster/{addProject.pk}'
+                        host = 'hku.backtrack@gmail.com'
+                        recipients = [addUser.email,]
+                        send_mail(title,
+                            content,
+                            host,
+                            recipients,
+                            fail_silently=False)
+                        return JsonResponse(data,safe = False)
+
+@login_required
+def acceptScrumMaster(request,projectId):
+    acceptUser = request.user
+    acceptProject = Project.objects.get(pk=projectId)
+    invitation = invitedScrumMaster.objects.filter(Q(user=acceptUser) & Q(project=acceptProject))
+    if invitation:
+        acceptUser.project.add(acceptProject)
+        acceptUser.scrumMaster = True
+        acceptUser.save()
+        invitation.first().delete()
+        return render(request,'acceptScrumMaster.html')
 
 @login_required
 def productBacklogRoute(request):
@@ -267,10 +327,9 @@ class ProductOwnerViewCurrent(TemplateView):
         newStatus = request.POST.get('newStatus', '')
         obj = PBI.objects.filter(id=myid).first()
         obj.status =  newStatus
+        if newStatus == "1":
+            obj.sprintNo = None
         obj.save()
-        context = {
-        'object': obj
-        }
         # return HttpResponseRedirect('/myApp/pbis')
         # return render(request, 'PBI_list.html', {})
         return HttpResponseRedirect(reverse_lazy('pbi_list'))
@@ -289,15 +348,15 @@ class ProductOwnerViewCurrent(TemplateView):
         }
         return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
-    def priority_auto_view(request):
-        myid = request.POST.get('myid', '') # function to get param from POST
-        obj = PBI.objects.filter(id=myid).first()
-        # for obj in objs:
-        obj.priority = obj.priority - 1
-        obj.save()
-        # return HttpResponseRedirect('/myApp/pbis')
-        # return render(request, 'PBI_list.html', {})
-        return HttpResponseRedirect(reverse_lazy('pbi_list'))
+    # def priority_auto_view(request):
+    #     myid = request.POST.get('myid', '') # function to get param from POST
+    #     obj = PBI.objects.filter(id=myid).first()
+    #     # for obj in objs:
+    #     obj.priority = obj.priority - 1
+    #     obj.save()
+    #     # return HttpResponseRedirect('/myApp/pbis')
+    #     # return render(request, 'PBI_list.html', {})
+    #     return HttpResponseRedirect(reverse_lazy('pbi_list'))
 
     def process_done_view(request):
         myid = request.POST.get('myid', '')

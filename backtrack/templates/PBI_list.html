@@ -57,18 +57,18 @@
                             <td>{{ pbi.sprintNo }}</td>
                             {% endif %}
                             <td>
-                                {% if pbi.status == 1 %}
+                                {% if pbi.status == 1 or pbi.status == 4 %}
                                     <button type="button" class ="up btn btn-primary" id = {{ pbi.pk }}>↑</button>
                                     <button type="button" class ="down btn btn-primary" id = {{ pbi.pk }}>↓</button>
                                     <input type="text" class = "insertField" placeholder ="priority"></input>
                                     <button class ="insert btn btn-primary btn-sm" pbiId = {{ pbi.pk }} >Insert</button>
                                 {% endif %}
-                                {% if pbi.status == 1 %}
+                                {% if pbi.status == 1 or pbi.status == 4%}
                                 <button type="button" class="pbi-detail btn btn-sm btn-primary" data-id="{% url 'pbi_detail' pbi.pk %}">
                                     Detail
                                 </button>
                                 {% endif %}
-                                {% if pbi.status != 1 %}
+                                {% if pbi.status != 1 and pbi.status != 4%}
                                 <button type="button" class="pbi-realDetail btn btn-sm btn-primary" data-id="{% url 'pbi_realDetail' pbi.pk %}">
                                     Detail
                                 </button>                                    
@@ -91,7 +91,7 @@
                                         <option value= 4 selected = "selected">Not Completed</option>
                                     {% endif %}
                                 </select>
-                                {% if pbi.status == 1 %}
+                                {% if pbi.status == 1 or pbi.status == 4 %}
                                 <button type="button" class="pbi-delete btn btn-sm btn-danger" priority = {{ pbi.priority }} dataid = {{ pbi.pk }} >
                                     X
                                 </button>
