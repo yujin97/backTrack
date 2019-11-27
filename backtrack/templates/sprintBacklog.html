@@ -102,7 +102,7 @@
                                         <div class = "taskContainer">
                                             {% for done in doneTasks %}
                                                 {% if done.pbiPicked == pbi %}
-                                                    <div class = 'task' dataid = "{{ done.pk }}"  detail = "{% url 'task_details' done.pk %}">
+                                                    <div class = 'task' dataid = "{{ done.pk }}"  detail = "{% url 'task_details' done.pk %}" style = "font-size:9px">
                                                         {{ done.name }}
                                                         <div class = "estimate{{ forloop.parentloop.counter0 }}" hour = {{ done.estimate }} >estimate: {{ done.estimate }} hours</div>
                                                         <div class = "burndown{{ forloop.parentloop.counter0 }}" hour = {{ done.complete }} >burndown: {{ done.complete }} hours</div>
@@ -207,12 +207,12 @@
                 let burndown = 0;
                 let remain = 0;
                 for (let j = 0; j < taskNum; j ++){
-                    estimate += parseInt(estimates[j].attributes.hour.value);
-                    burndown += parseInt(burndowns[j].attributes.hour.value);
-                    remain += (estimates[j].attributes.hour.value - parseInt(burndowns[j].attributes.hour.value))
-                    sprintEstimate += parseInt(estimates[j].attributes.hour.value);
-                    sprintBurndown += parseInt(burndowns[j].attributes.hour.value);
-                    sprintRemain += (parseInt(estimates[j].attributes.hour.value) - parseInt(burndowns[j].attributes.hour.value));
+                    estimate += parseFloat(estimates[j].attributes.hour.value);
+                    burndown += parseFloat(burndowns[j].attributes.hour.value);
+                    remain += (estimates[j].attributes.hour.value - parseFloat(burndowns[j].attributes.hour.value))
+                    sprintEstimate += parseFloat(estimates[j].attributes.hour.value);
+                    sprintBurndown += parseFloat(burndowns[j].attributes.hour.value);
+                    sprintRemain += (parseFloat(estimates[j].attributes.hour.value) - parseFloat(burndowns[j].attributes.hour.value));
                 }
                 pbiTotalEstimate.push(estimate);
                 pbiTotalBurndown.push(burndown);

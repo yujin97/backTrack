@@ -35,7 +35,7 @@
                             <div>
                             person-in-charged: {% if task.pic %} {{ task.pic.name }} {% else %} None {% endif %}
                             </div> 
-                            {% if not task.pic and user.project.all.0.started == true %}
+                            {% if not task.pic and user.project.all.0.started == True %}
                             <div>
                                 <button type="button" class="btn btn-dark btn-sm" id = "pick">Pick</button>
                             </div>
@@ -48,11 +48,17 @@
                         </div>
                         <textarea class = "nextLabel" rows="4" cols="50" id = "description">{{ task.Description }}</textarea>
                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Related PBI: 
+                        </div>
+                        <p class = "nextLabel" >{{ task.pbiPicked.pbi.name }}</p>
+                    </div>
                     <div class = "zone detail4">
                         <div>
                         Status: 
                         </div>
-                        <p class =" nextLabel">Not yet Started</p>
+                        <div class =" nextLabel">Not yet Started</div>
                     </div>
                     <div class = "zone detail5">
                         <div>
@@ -74,8 +80,10 @@
                             ID: {{ task.id }}
                         </div>
                         <div class='buttons'>
+                            {% if task.status != 3 %}
                             <button type="button" class="btn btn-success btn-sm" id = 'save'>Save Update</button>
                             <button type="button" class="btn btn-danger btn-sm">Discard Update</button>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="zone detail2">
@@ -94,16 +102,20 @@
                         </div>
                         <p class = "nextLabel" >{{ task.Description }}</p>
                     </div>
+                    <div class = "zone detail3">
+                        <div>
+                        Related PBI: 
+                        </div>
+                        <p class = "nextLabel" >{{ task.pbiPicked.pbi.name }}</p>
+                    </div>
                     <div class = "zone detail4">
                         <div>
                         Status: 
                         </div>
                         <select class="changeStatus nextLabel" id = 'status'>
-                            <option value= 1>Not yet Started</option>
                             {% if task.status == 2 %}
+                                <option value= 1>Not yet Started</option>
                                 <option value= 2 selected = "selected">In Progress</option>
-                            {% else %}
-                                <option value= 2 >In Progress</option>
                             {% endif %}
                             {% if task.status == 3 %}
                                 <option value= 3 selected = "selected">Done</option>
@@ -148,6 +160,10 @@
             let description = document.getElementById('description');
             let estimate = document.getElementById('estimate');
             if (thisStatus == 1){
+                let discard = document.getElementById('discard');
+                discard.addEventListener('click', () => {
+                    location.reload(false);
+                });
                 saveBtn.addEventListener('click', () => {
                     let taskId = document.getElementsByClassName('id')[0].attributes.taskId.value;
                     let namev = name.value;
