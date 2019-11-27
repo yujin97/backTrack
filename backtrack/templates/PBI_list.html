@@ -45,10 +45,10 @@
                     {% for pbi in pbi_list %}
                         {% if pbi.status != 3 %}
                         <tr>
-                            <td>{{ pbi.name }}</td>
+                            <td style = "width: 10%">{{ pbi.name }}</td>
                             <td class = "estimate">{{ pbi.estimate }}</td>
                             <td class = "accEstimate"></td>
-                            <td>{{ pbi.Description }}</td>
+                            <td style ="width: 15%">{{ pbi.Description }}</td>
                             <td>{{ pbi.get_status_display }}</td>
                             <td>{{ pbi.priority }}</td>
                             {% if pbi.sprintNo == None %}
