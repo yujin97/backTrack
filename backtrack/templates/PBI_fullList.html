@@ -64,15 +64,14 @@
                                     {% endif %}
                                     {% if pbi.status == 2 %}
                                         <option value= 2 selected = "selected">In Progress</option>
-                                    {% else %}
-                                        {% if pbi.status != 3%}
-                                        <option value= 2 >In Progress</option>
-                                        {% endif %}
+                                        <option value= 3>Done</option>
                                     {% endif %}
                                     {% if pbi.status == 3 %}
                                         <option value= 3 selected = "selected">Done</option>
-                                    {% else %}
-                                        <option value= 3 >Done</option>
+                                    {% endif %}
+                                    {% if pbi.status == 4 %}
+                                        <option value= 1>Not Yet Started</option>
+                                        <option value= 4 selected = "selected">Not Completed</option>
                                     {% endif %}
                                 </select>
                                 {% if pbi.status == 1 %}

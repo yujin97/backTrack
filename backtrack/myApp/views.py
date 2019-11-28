@@ -296,28 +296,27 @@ class ProductOwnerViewCurrent(TemplateView):
         myid = request.POST.get('myid', '') # function to get param from POST
         targetPriority = request.POST.get('targetPriority', '')
         obj = PBI.objects.filter(id=myid).first()
-        target = PBI.objects.filter(priority=targetPriority).first()
-        targetPriority = target.priority
-        if target.status == 1 and targetPriority != obj.priority:
-            if targetPriority < obj.priority:
-                affecteds = PBI.objects.order_by('-priority').filter(Q(project = obj.project) & Q(priority__lt = obj.priority) & Q(priority__gte = target.priority))
-                obj.priority = None
+        target = PBI.objects.filter(Q(priority=targetPriority) & Q(project=request.user.project.all().first()) ).first()
+        print(target.name)
+        if target.status == 1 or target.status == 4:
+            targetPriority = target.priority
+            if target.status == 1 and targetPriority != obj.priority:
+                if targetPriority < obj.priority:
+                    affecteds = PBI.objects.order_by('-priority').filter(Q(project = obj.project) & Q(priority__lt = obj.priority) & Q(priority__gte = target.priority))
+                    obj.priority = None
+                    obj.save()
+                    for affected in affecteds:
+                        affected.priority = affected.priority + 1
+                        affected.save()
+                else:
+                    affecteds = PBI.objects.order_by('priority').filter(Q(project = obj.project) & Q(priority__gt = obj.priority) & Q(priority__lte = target.priority))
+                    obj.priority = None
+                    obj.save()
+                    for affected in affecteds:
+                        affected.priority = affected.priority - 1
+                        affected.save()
+                obj.priority = targetPriority
                 obj.save()
-                for affected in affecteds:
-                    affected.priority = affected.priority + 1
-                    affected.save()
-            else:
-                affecteds = PBI.objects.order_by('priority').filter(Q(project = obj.project) & Q(priority__gt = obj.priority) & Q(priority__lte = target.priority))
-                obj.priority = None
-                obj.save()
-                for affected in affecteds:
-                    affected.priority = affected.priority - 1
-                    affected.save()
-            obj.priority = targetPriority
-            obj.save()
-        context = {
-        'object': obj
-        }
         # return HttpResponseRedirect('/myApp/pbis')
         # return render(request, 'PBI_list.html', {})
         return HttpResponseRedirect(reverse_lazy('pbi_list'))
@@ -554,9 +553,17 @@ class SprintBacklog(TemplateView):
     def deletePulled(request):
         pbiid = request.POST.get('pbiid', '')
         obj = PickedPBI.objects.filter(id=pbiid).first()
+        flag = False
+        relatedDoneTasks = Task.objects.filter(Q(pbiPicked=obj) & Q(status = 3))
+        if relatedDoneTasks:
+            flag = True
         pbi = obj.pbi
         obj.delete()
-        pbi.status = 4
+        if flag:
+            pbi.status = 4
+        else:
+            pbi.status = 1
+            pbi.sprintNo = None
         pbi.save()
         return HttpResponseRedirect(reverse_lazy('sprint_backlog'))
 
