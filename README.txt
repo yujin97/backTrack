@@ -1,5 +1,7 @@
 Readme
 
+// A project backlog management system for Scrum
+// Main function: Product backlog, sprint backlog
 
 Steps to install this project in your environment:
 	1. Go to the root directory of this project (Directory with Pipfile)
@@ -22,8 +24,6 @@ About the url routes of this project:
 		http://localhost:8000/login
 	2. The admin page for managing the database
 		http://localhost:8000/admin
-		username: glcmgcd
-		password: testing00@
 	3. Entry Point of the system
 		1. http://localhost:8000/login
 
